@@ -16,10 +16,10 @@ import norswap.utils.exceptions.NoStackException;
 import norswap.utils.visitors.ValuedVisitor;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static norswap.utils.Util.cast;
-import static norswap.utils.Vanilla.coIterate;
 import static norswap.utils.Vanilla.map;
 
 /**
@@ -415,8 +415,68 @@ public final class Interpreter
         storage = new ScopeStorage(scope, storage);
 
         FunDeclarationNode funDecl = (FunDeclarationNode) decl;
-        coIterate(args, funDecl.parameters,
-                (arg, param) -> storage.set(scope, param.name, arg));
+
+        List<AbstractParameterNode> params = funDecl.parameters;
+        int nbParams = params.size();
+        int quit = nbParams;
+        int nbArgs = args.length;
+
+        int pParams = 0;
+        int pArgs = 0;
+
+        int nbDefaults = 0;
+        for (AbstractParameterNode param : params) {
+            if (param instanceof DefaultParameterNode) nbDefaults++;
+        }
+
+        while (pParams < quit){
+            if (nbArgs + nbDefaults == nbParams){
+                AbstractParameterNode param = params.get(pParams);
+                if (param instanceof DefaultParameterNode) {
+                    Object defaultValue = visitor.apply(((DefaultParameterNode) param).defaultValue);
+                    storage.set(scope, param.name, defaultValue);
+                    nbDefaults --;
+                }
+                else {
+                    Object arg = args[pArgs];
+                    storage.set(scope, param.name, arg);
+                    nbArgs --;
+                    pArgs ++;
+                }
+                nbParams --;
+                pParams ++;
+            }
+            else if (nbArgs + nbDefaults > nbParams){
+                AbstractParameterNode param = params.get(pParams);
+                Object arg = args[pArgs];
+                storage.set(scope, param.name, arg);
+                if (param instanceof DefaultParameterNode) nbDefaults --;
+                nbArgs --;
+                pArgs ++;
+                nbParams --;
+                pParams ++;
+            }
+            else {
+                throw new PassthroughException(new RuntimeException("Not enough arguments for the function \"" + funDecl.name + "\""));
+            }
+        }
+
+//        for (AbstractParameterNode param : params) {
+//            if (param instanceof DefaultParameterNode) {
+//                Object defaultValue = visitor.apply(((DefaultParameterNode) param).defaultValue);
+//                storage.set(scope, param.name, defaultValue);
+//            }
+//            else {
+//                storage.set(scope, param.name, arg);
+//            }
+//        }
+
+//        coIterate(args, funDecl.parameters,
+//                (arg, param) -> {
+//                    storage.set(scope, param.name, arg);
+//                    System.out.println(arg);
+//                    System.out.println(param);
+//                });
 
         try {
             get(funDecl.block);
@@ -494,7 +554,7 @@ public final class Interpreter
         DeclarationNode decl = reactor.get(node, "decl");
 
         if (decl instanceof VarDeclarationNode
-        || decl instanceof ParameterNode
+        || decl instanceof AbstractParameterNode
         || decl instanceof SyntheticDeclarationNode
                 && ((SyntheticDeclarationNode) decl).kind() == DeclarationKind.VARIABLE)
             return scope == rootScope

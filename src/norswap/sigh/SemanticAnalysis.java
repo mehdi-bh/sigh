@@ -15,6 +15,7 @@ import norswap.utils.visitors.Walker;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static java.lang.String.format;
@@ -133,6 +134,7 @@ public final class SemanticAnalysis
         walker.register(VarDeclarationNode.class,       PRE_VISIT,  analysis::varDecl);
         walker.register(FieldDeclarationNode.class,     PRE_VISIT,  analysis::fieldDecl);
         walker.register(ParameterNode.class,            PRE_VISIT,  analysis::parameter);
+        walker.register(DefaultParameterNode.class,     PRE_VISIT,  analysis::defaultParameter);
         walker.register(FunDeclarationNode.class,       PRE_VISIT,  analysis::funDecl);
         walker.register(StructDeclarationNode.class,    PRE_VISIT,  analysis::structDecl);
 
@@ -403,6 +405,17 @@ public final class SemanticAnalysis
             R.set(arg, "index", i);
         });
 
+        // TODO : Chopper le nombre de paramètres par défaut pour pouvoir les comparer au nombre d'arguments donnés
+
+//        R.rule(node, "defaultParameters")
+//        .by(r -> {
+//            int nbDefault = r.get(0);
+//            List<ExpressionNode> args = node.arguments;
+//            if (nbDefault != args.size()) {
+//                System.out.println("fdpfdp");
+//            }
+//        });
+
         R.rule(node, "type")
         .using(dependencies)
         .by(r -> {
@@ -419,10 +432,11 @@ public final class SemanticAnalysis
             Type[] params = funType.paramTypes;
             List<ExpressionNode> args = node.arguments;
 
-            if (params.length != args.size())
-                r.errorFor(format("wrong number of arguments, expected %d but got %d",
-                        params.length, args.size()),
-                    node);
+            // TODO : gestion nb params
+//            if (params.length != args.size())
+//                r.errorFor(format("wrong number of arguments, expected %d but got %d",
+//                        params.length, args.size()),
+//                    node);
 
             int checkedArgs = Math.min(params.length, args.size());
 
@@ -773,6 +787,22 @@ public final class SemanticAnalysis
 
     // ---------------------------------------------------------------------------------------------
 
+    private void defaultParameter (DefaultParameterNode node)
+    {
+        R.set(node, "scope", scope);
+        scope.declare(node.name, node); // scope pushed by FunDeclarationNode
+
+        R.rule(node, "type")
+            .using(node.type, "value")
+            .by(Rule::copyFirst);
+
+//        R.rule(node, "defaultValue")
+//            .using(node.defaultValue, "value")
+//            .by(Rule::copyFirst);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     private void funDecl (FunDeclarationNode node)
     {
         scope.declare(node.name, node);
@@ -781,6 +811,7 @@ public final class SemanticAnalysis
 
         Attribute[] dependencies = new Attribute[node.parameters.size() + 1];
         dependencies[0] = node.returnType.attr("value");
+
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
 
@@ -792,6 +823,15 @@ public final class SemanticAnalysis
                 paramTypes[i] = r.get(i + 1);
             r.set(0, new FunType(r.get(0), paramTypes));
         });
+
+        AtomicInteger nbDefault = new AtomicInteger();
+        forEachIndexed(node.parameters, (i, param) -> {
+            if (param instanceof DefaultParameterNode) nbDefault.getAndIncrement();
+        });
+
+        // TODO : trouver un moyen de dire cb de paramètres par défault on a dans la fonction
+//        R.rule(node, "defaultParameters")
+//        .by(r -> r.set(0, nbDefault.get()));
 
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))

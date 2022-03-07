@@ -231,13 +231,20 @@ public class SighGrammar extends Grammar
         seq(_var, identifier, COLON, type, EQUALS, expression)
         .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2]));
 
+    public rule default_parameter =
+        seq(identifier, COLON, type, EQUALS, expression)
+        .push($ -> new DefaultParameterNode($.span(), $.$[0], $.$[1], $.$[2]));
+
     public rule parameter =
         seq(identifier, COLON, type)
         .push($ -> new ParameterNode($.span(), $.$[0], $.$[1]));
 
+    public rule abstract_parameter =
+        choice(default_parameter, parameter);
+
     public rule parameters =
-        parameter.sep(0, COMMA)
-        .as_list(ParameterNode.class);
+        abstract_parameter.sep(0, COMMA)
+        .as_list(AbstractParameterNode.class);
 
     public rule maybe_return_type =
         seq(COLON, type).or_push_null();
