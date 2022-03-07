@@ -405,17 +405,6 @@ public final class SemanticAnalysis
             R.set(arg, "index", i);
         });
 
-        // TODO : Chopper le nombre de paramètres par défaut pour pouvoir les comparer au nombre d'arguments donnés
-
-//        R.rule(node, "defaultParameters")
-//        .by(r -> {
-//            int nbDefault = r.get(0);
-//            List<ExpressionNode> args = node.arguments;
-//            if (nbDefault != args.size()) {
-//                System.out.println("fdpfdp");
-//            }
-//        });
-
         R.rule(node, "type")
         .using(dependencies)
         .by(r -> {
@@ -432,7 +421,7 @@ public final class SemanticAnalysis
             Type[] params = funType.paramTypes;
             List<ExpressionNode> args = node.arguments;
 
-            // TODO : gestion nb params
+            // TODO : Savoir récupérer le nombre de DEFAULT pour pouvoir faire le check des paramètres
 //            if (params.length != args.size())
 //                r.errorFor(format("wrong number of arguments, expected %d but got %d",
 //                        params.length, args.size()),
@@ -793,12 +782,21 @@ public final class SemanticAnalysis
         scope.declare(node.name, node); // scope pushed by FunDeclarationNode
 
         R.rule(node, "type")
-            .using(node.type, "value")
-            .by(Rule::copyFirst);
+        .using(node.type, "value")
+        .by(Rule::copyFirst);
 
-//        R.rule(node, "defaultValue")
-//            .using(node.defaultValue, "value")
-//            .by(Rule::copyFirst);
+        R.rule()
+        .using(node.type.attr("value"), node.defaultValue.attr("type"))
+        .by(r -> {
+            Type expected = r.get(0);
+            Type actual = r.get(1);
+
+            if (!isAssignableTo(actual, expected))
+                r.error(format(
+                    "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                    node.name, expected, actual),
+                    node.defaultValue);
+        });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -823,15 +821,6 @@ public final class SemanticAnalysis
                 paramTypes[i] = r.get(i + 1);
             r.set(0, new FunType(r.get(0), paramTypes));
         });
-
-        AtomicInteger nbDefault = new AtomicInteger();
-        forEachIndexed(node.parameters, (i, param) -> {
-            if (param instanceof DefaultParameterNode) nbDefault.getAndIncrement();
-        });
-
-        // TODO : trouver un moyen de dire cb de paramètres par défault on a dans la fonction
-//        R.rule(node, "defaultParameters")
-//        .by(r -> r.set(0, nbDefault.get()));
 
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))

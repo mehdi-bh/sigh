@@ -1,4 +1,4 @@
-fun validate5 (value1: Int = 5, value2: Int = 6, value3: Int = 10)
+fun validate5 (value1: Int = "String", value2: Int = 6, value3: Int = 10)
 {
     print("" + value1)
     print("" + value2)
