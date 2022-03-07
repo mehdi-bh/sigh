@@ -23,6 +23,38 @@ public class GrammarTests extends AutumnTestFixture {
     }
 
     // ---------------------------------------------------------------------------------------------
+    // PROJECT FEATURES TESTS
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
+    public void testDefaultParameter () {
+        successExpect("fun f (x: Int = 5): Int { return 1 }",
+            new FunDeclarationNode(null, "f", asList(
+                    new DefaultParameterNode(null, "x", new SimpleTypeNode(null, "Int"), new IntLiteralNode(null, 5))
+                ),
+                new SimpleTypeNode(null, "Int"),
+                new BlockNode(null, asList(new ReturnNode(null, intlit(1))))));
+
+        successExpect("fun f (x: Int = 5, y: Int = 2, z: String = \"oui monsieur\"): Int { return 1 }",
+            new FunDeclarationNode(null, "f", asList(
+                new DefaultParameterNode(null, "x", new SimpleTypeNode(null, "Int"), new IntLiteralNode(null, 5)),
+                new DefaultParameterNode(null, "y", new SimpleTypeNode(null, "Int"), new IntLiteralNode(null, 2)),
+                new DefaultParameterNode(null, "z", new SimpleTypeNode(null, "String"), new StringLiteralNode(null, "oui monsieur"))
+            ),
+                new SimpleTypeNode(null, "Int"),
+                new BlockNode(null, asList(new ReturnNode(null, intlit(1))))));
+
+        successExpect("fun f (x: Int, y: Int, z: String = \"oui monsieur\"): Int { return 1 }",
+            new FunDeclarationNode(null, "f", asList(
+                new ParameterNode(null, "x", new SimpleTypeNode(null, "Int")),
+                new ParameterNode(null, "y", new SimpleTypeNode(null, "Int")),
+                new DefaultParameterNode(null, "z", new SimpleTypeNode(null, "String"), new StringLiteralNode(null, "oui monsieur"))
+            ),
+                new SimpleTypeNode(null, "Int"),
+                new BlockNode(null, asList(new ReturnNode(null, intlit(1))))));
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     @Test
     public void testLiteralsAndUnary () {

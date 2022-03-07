@@ -107,6 +107,44 @@ public final class InterpreterTests extends TestFixture {
     }
 
     // ---------------------------------------------------------------------------------------------
+    // PROJECT FEATURES TESTS
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
+    public void testDefaultParameter () {
+        check(
+      "fun add (a: Int, b: Int): Int {" +
+            " return a + b " +
+            "} " +
+            "return add(4, 7)",
+            11L);
+        check(
+      "fun add (a: Int = 5, b: Int): Int {" +
+            " return a + b " +
+            "} " +
+            "return add(4)",
+            9L);
+        check(
+      "fun add (a: Int = 5, b: Int = 10): Int {" +
+            " return a + b " +
+            "} " +
+            "return add()",
+            15L);
+        check(
+      "fun add (a: Int = 5, b: Int = 10): Int {" +
+            " return a + b " +
+            "} " +
+            "return add(10)",
+            20L);
+        check(
+      "fun add (a: Int = 5, b: Int = 10, c: Int): Int {" +
+            " return a + b + c" +
+            "} " +
+            "return add(1)",
+            16L);
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     @Test
     public void testLiteralsAndUnary () {
