@@ -420,20 +420,24 @@ public final class SemanticAnalysis
                 Type[] params = funType.paramTypes;
                 List<ExpressionNode> args = node.arguments;
 
-                DeclarationContext ctx = scope.lookup(((ReferenceNode)node.function).name);
-                DeclarationNode decl = ctx == null ? null : ctx.declaration;
+                int nbDefault = 0;
+                if(node.function instanceof ReferenceNode) {
+                    DeclarationContext ctx = scope.lookup(((ReferenceNode) node.function).name);
+                    DeclarationNode decl = ctx == null ? null : ctx.declaration;
 
-                if (ctx == null)
-                    r.errorFor("could not resolve: " + ((ReferenceNode)node.function).name, node, node.attr("value"));
+                    if (ctx == null)
+                        r.errorFor("could not resolve: " + ((ReferenceNode) node.function).name, node, node.attr("value"));
 
-                int nbDefault =0;
-                if(decl instanceof FunDeclarationNode)
-                    nbDefault = (int) ((FunDeclarationNode) decl).parameters.stream().filter(p -> p.initializer != null).count();
-
+                    if (decl instanceof FunDeclarationNode)
+                        nbDefault = (int) ((FunDeclarationNode) decl).parameters.stream().filter(p -> p.initializer != null).count();
+                }
 
                 if (args.size() + nbDefault < params.length)
                     r.errorFor(format("wrong number of arguments, expected at least %d but got %d",
                         params.length - nbDefault, args.size()), node);
+                else if(args.size() > params.length)
+                    r.errorFor(format("wrong number of arguments, expected at most %d but got %d",
+                        params.length, args.size()), node);
 
                 int checkedArgs = Math.min(params.length, args.size());
 

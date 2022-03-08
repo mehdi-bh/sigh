@@ -233,9 +233,9 @@ public class SighGrammar extends Grammar
 
 //    public rule parameter =
 //        seq(identifier, COLON, type)
-//        .push($ -> new ParameterNode($.span(), $.$[0], $.$[1]));
+//        .push($ -> new ParameterDefaultNode($.span(), $.$[0], $.$[1],null));
 
-    public rule parameter =
+    public rule parameterDefault =
         seq(identifier, COLON, type, seq(EQUALS, expression).opt())
             .push($ -> {
                 int n = $.$.length;
@@ -243,8 +243,9 @@ public class SighGrammar extends Grammar
             });
 
     public rule parameters =
-        parameter.sep(0, COMMA)
+        parameterDefault.sep(0, COMMA)
         .as_list(ParameterNode.class);
+
 
     public rule maybe_return_type =
         seq(COLON, type).or_push_null();

@@ -46,6 +46,66 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
     // ---------------------------------------------------------------------------------------------
 
+
+
+    @Test
+    public void testFun() {
+        successInput(
+            "fun add (a: Int = 5, b: Int = 10): Int { return a + b } " +
+                "return add(4, 7)" +
+                "return add(4)" +
+                "return add()");
+
+        successInput(
+            "fun add (a: Int, b: Int = 10, c: Int = 15): Int { return a + b + c } " +
+                "return add(10)" +
+                "return add(10,20)"+
+                "return add(10,20,25)");
+
+        successInput(
+            "fun add (a: String, b: Int = 10, c: String = \"abc\", d: Int = 15): String { return a + b + c + d} " +
+                "return add(\"10\")" +
+                "return add(\"10\",20)"+
+                "return add(\"10\",20,\"---\")" +
+                "return add(\"xxx\",20,\"---\", 30)");
+
+        // |=================================| WRONG TYPE |===================================|
+        failureInput(
+            "fun add (a: Int = 5, b: Int = 10): Int { return a + b } " +
+                "return add(\"1\",10)");
+
+        failureInput(
+            "fun add (a: Int = 5, b: Int = 10): Int { return a + b } " +
+                "return add(5,\"99\")");
+
+        failureInput("fun add (a: String, b: Int, c: String, d : String = \"abc\"): String { return a + b + c + d } " +
+                "return add(\"a\",50, \"c\", 30)");
+
+        failureInput("fun add (a: String, b: Int, c: String = \"def\", d : String = \"abc\"): String { return a + b + c + d } " +
+            "return add(50,\"a\")");
+
+        // |=================================| WRONG NUMBER OF ARGS |===================================|
+        failureInputWith(
+            "fun add (a: Int = 5, b: Int = 10): Int { return a + b } " +
+                "return add(3,4,5)", "wrong number of arguments, expected at most 2 but got 3");
+
+        failureInputWith(
+            "fun add (a: Int, b: Int = 10): Int { return a + b } " +
+                "return add()", "wrong number of arguments, expected at least 1 but got 0");
+
+
+        // |=================================| WRONG ORDER OF DEFAULT ARGS |===================================|
+        failureInputWith("fun add (a: Int = 5, b: Int, c: Int = 10): Int { return a + b + c } " +
+            "return add(7)","Default args of function add should be placed at the end of the signature");
+
+        failureInputWith("fun add (a: String, b: Int = 20, c: String, d : String = \"abc\"): String { return a + b + c + d } " +
+            "return add(\"a\",50, \"c\")",
+            "Default args of function add should be placed at the end of the signature");
+
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     @Test public void testLiteralsAndUnary() {
         successInput("return 42");
         successInput("return 42.0");

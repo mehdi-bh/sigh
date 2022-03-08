@@ -14,12 +14,67 @@ public class GrammarTests extends AutumnTestFixture {
 
     // ---------------------------------------------------------------------------------------------
 
+    private static StringLiteralNode stringlit (String s) {
+        return new StringLiteralNode(null, s);
+    }
+
     private static IntLiteralNode intlit (long i) {
         return new IntLiteralNode(null, i);
     }
 
     private static FloatLiteralNode floatlit (double d) {
         return new FloatLiteralNode(null, d);
+    }
+
+    private static SimpleTypeNode simpleType (String name){ return new SimpleTypeNode(null,name);}
+
+    private static ParameterDefaultNode param(String name, String type, ExpressionNode lit){ return new ParameterDefaultNode(null,name, simpleType(type),lit);}
+
+    @Test
+    public void testParameterDefault () {
+        rule = grammar.statement;
+
+        BlockNode bn = new BlockNode(null, asList(new ReturnNode(null, intlit(1))));
+
+        successExpect("fun f (x: Int): Int { return 1 }",
+            new FunDeclarationNode(null, "f",
+                asList(param("x","Int",null)),
+                simpleType("Int"),
+                bn));
+
+        successExpect("fun f (x: Int = 5): Int { return 1 }",
+            new FunDeclarationNode(null, "f",
+                asList(param("x","Int",intlit(5))),
+                simpleType("Int"),
+                bn));
+
+        successExpect("fun f (x: Int = 5, y: Int = 2, z: String = \"oui monsieur\"): Int { return 1 }",
+            new FunDeclarationNode(null, "f", asList(
+                param("x","Int",intlit(5)),
+                param("y","Int",intlit(2)),
+                param("z","String",stringlit("oui monsieur"))
+            ),
+                simpleType("Int"),
+                bn));
+
+        successExpect("fun f (x: Int, y: Int, z: String = \"oui monsieur\"): Int { return 1 }",
+            new FunDeclarationNode(null, "f", asList(
+                param("x","Int",null),
+                param("y","Int",null),
+                param("z","String",stringlit("oui monsieur"))
+            ),
+                simpleType("Int"),
+                bn));
+
+        //This test case is refused in the SementicAnalysis
+        successExpect("fun f (x: Int = 5, y: Int, z: String = \"non monsieur\"): Int { return 1 }",
+            new FunDeclarationNode(null, "f", asList(
+                param("x","Int",intlit(5)),
+                param("y","Int",null),
+                param("z","String",stringlit("non monsieur"))
+            ),
+                simpleType("Int"),
+                bn));
     }
 
     // ---------------------------------------------------------------------------------------------

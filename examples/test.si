@@ -11,6 +11,9 @@ validate5(-998,111110,5)
 print(" ")
 validate5(-997) // some men just want to watch the world burn
 //validate5()
+print(add(3,4,5) + " ")
+
+fun add (a: Int = 5, b: Int = 10): Int { return a + b }
 
 fun validate5 (ok: Int,test: Int = 20 ,val: Int = 10)
 {
