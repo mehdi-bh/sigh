@@ -14,9 +14,12 @@ import norswap.utils.Util;
 import norswap.utils.exceptions.Exceptions;
 import norswap.utils.exceptions.NoStackException;
 import norswap.utils.visitors.ValuedVisitor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static norswap.utils.Util.cast;
 import static norswap.utils.Vanilla.coIterate;
@@ -415,8 +418,19 @@ public final class Interpreter
         storage = new ScopeStorage(scope, storage);
 
         FunDeclarationNode funDecl = (FunDeclarationNode) decl;
-        coIterate(args, funDecl.parameters,
-                (arg, param) -> storage.set(scope, param.name, arg));
+        int nArgs = funDecl.parameters.size();
+
+        List<Object> listArgs = new ArrayList<>(Arrays.asList(args));
+        List<Object> defaultsArgs = funDecl.parameters.stream().filter(p -> p.initializer != null).collect(Collectors.toList());
+
+        for(Object defArg : defaultsArgs.subList(defaultsArgs.size() - (nArgs - args.length) , defaultsArgs.size())){
+            //            paramDefault((ParameterDefaultNode) defArg);
+            ParameterDefaultNode param = cast(defArg);
+            assign(scope, param.name, get(param.initializer), reactor.get(param, "type"));
+        }
+
+        coIterate(args, funDecl.parameters.subList(0,args.length),
+            (arg, param) -> storage.set(scope, param.name, arg));
 
         try {
             get(funDecl.block);
@@ -495,6 +509,7 @@ public final class Interpreter
 
         if (decl instanceof VarDeclarationNode
         || decl instanceof ParameterNode
+        || decl instanceof ParameterDefaultNode
         || decl instanceof SyntheticDeclarationNode
                 && ((SyntheticDeclarationNode) decl).kind() == DeclarationKind.VARIABLE)
             return scope == rootScope

@@ -1,0 +1,40 @@
+
+//var math: Int = 1 + 3 * 4 * (1 + 3) / 12
+//validate5(math)
+var m: Int = 5
+//var x: Int = 9
+//var c: Int = m * x
+
+validate5(-999, 111111)
+print(" ")
+validate5(-998,111110,5)
+print(" ")
+validate5(-997) // some men just want to watch the world burn
+//validate5()
+
+fun validate5 (ok: Int,test: Int = 20 ,val: Int = 10)
+{
+    //var fdp: Int = 0
+    //print(fdp + " ")
+    if (val != 5)
+        print("We wanted 5 but got " + val)
+    else if (val == 5)
+        print("bg")
+
+    print("Test is " + test)
+    print("Ok is " + ok)
+}
+
+print(" ")
+zigouigoui("mhd")
+print(" ")
+//zigouigoui("abc","1")
+zigouigoui("abc", 999, "starfoullah")
+//zigouigoui("abc", 999, 777)
+fun zigouigoui(str1: String, a : Int = 16, str2 : String = "OkOkOk"){
+    print("str1 : " + str1 + ", a = " + a + ", str2 : " + str2)
+}
+
+//fun letoulouctouctou(a : Int = 5, b : Int){
+//    print("abc")
+//}

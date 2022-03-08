@@ -132,7 +132,7 @@ public final class SemanticAnalysis
         walker.register(BlockNode.class,                PRE_VISIT,  analysis::block);
         walker.register(VarDeclarationNode.class,       PRE_VISIT,  analysis::varDecl);
         walker.register(FieldDeclarationNode.class,     PRE_VISIT,  analysis::fieldDecl);
-        walker.register(ParameterNode.class,            PRE_VISIT,  analysis::parameter);
+        walker.register(ParameterDefaultNode.class,     PRE_VISIT,  analysis::parameterDefault);
         walker.register(FunDeclarationNode.class,       PRE_VISIT,  analysis::funDecl);
         walker.register(StructDeclarationNode.class,    PRE_VISIT,  analysis::structDecl);
 
@@ -394,6 +394,7 @@ public final class SemanticAnalysis
 
     private void funCall (FunCallNode node)
     {
+        final Scope scope = this.scope;
         this.inferenceContext = node;
 
         Attribute[] dependencies = new Attribute[node.arguments.size() + 1];
@@ -404,38 +405,48 @@ public final class SemanticAnalysis
         });
 
         R.rule(node, "type")
-        .using(dependencies)
-        .by(r -> {
-            Type maybeFunType = r.get(0);
+            .using(dependencies)
+            .by(r -> {
+                Type maybeFunType = r.get(0);
 
-            if (!(maybeFunType instanceof FunType)) {
-                r.error("trying to call a non-function expression: " + node.function, node.function);
-                return;
-            }
+                if (!(maybeFunType instanceof FunType)) {
+                    r.error("trying to call a non-function expression: " + node.function, node.function);
+                    return;
+                }
 
-            FunType funType = cast(maybeFunType);
-            r.set(0, funType.returnType);
+                FunType funType = cast(maybeFunType);
+                r.set(0, funType.returnType);
 
-            Type[] params = funType.paramTypes;
-            List<ExpressionNode> args = node.arguments;
+                Type[] params = funType.paramTypes;
+                List<ExpressionNode> args = node.arguments;
 
-            if (params.length != args.size())
-                r.errorFor(format("wrong number of arguments, expected %d but got %d",
-                        params.length, args.size()),
-                    node);
+                DeclarationContext ctx = scope.lookup(((ReferenceNode)node.function).name);
+                DeclarationNode decl = ctx == null ? null : ctx.declaration;
 
-            int checkedArgs = Math.min(params.length, args.size());
+                if (ctx == null)
+                    r.errorFor("could not resolve: " + ((ReferenceNode)node.function).name, node, node.attr("value"));
 
-            for (int i = 0; i < checkedArgs; ++i) {
-                Type argType = r.get(i + 1);
-                Type paramType = funType.paramTypes[i];
-                if (!isAssignableTo(argType, paramType))
-                    r.errorFor(format(
+                int nbDefault =0;
+                if(decl instanceof FunDeclarationNode)
+                    nbDefault = (int) ((FunDeclarationNode) decl).parameters.stream().filter(p -> p.initializer != null).count();
+
+
+                if (args.size() + nbDefault < params.length)
+                    r.errorFor(format("wrong number of arguments, expected at least %d but got %d",
+                        params.length - nbDefault, args.size()), node);
+
+                int checkedArgs = Math.min(params.length, args.size());
+
+                for (int i = 0; i < checkedArgs; ++i) {
+                    Type argType = r.get(i + 1);
+                    Type paramType = funType.paramTypes[i];
+                    if (!isAssignableTo(argType, paramType))
+                        r.errorFor(format(
                             "incompatible argument provided for argument %d: expected %s but got %s",
                             i, paramType, argType),
-                        node.arguments.get(i));
-            }
-        });
+                            node.arguments.get(i));
+                }
+            });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -771,6 +782,35 @@ public final class SemanticAnalysis
         .by(Rule::copyFirst);
     }
 
+
+    // ---------------------------------------------------------------------------------------------
+
+    private void parameterDefault (ParameterDefaultNode node) {
+        this.inferenceContext = node;
+
+        R.set(node, "scope", scope);
+        scope.declare(node.name, node);
+
+        R.rule(node, "type")
+            .using(node.type, "value")
+            .by(Rule::copyFirst);
+
+        if(node.initializer == null) return;
+
+        R.rule()
+            .using(node.type.attr("value"), node.initializer.attr("type"))
+            .by(r -> {
+                Type expected = r.get(0);
+                Type actual = r.get(1);
+
+                if (!isAssignableTo(actual, expected))
+                    r.error(format(
+                        "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                        node.name, expected, actual),
+                        node.initializer);
+            });
+    }
+
     // ---------------------------------------------------------------------------------------------
 
     private void funDecl (FunDeclarationNode node)
@@ -792,6 +832,19 @@ public final class SemanticAnalysis
                 paramTypes[i] = r.get(i + 1);
             r.set(0, new FunType(r.get(0), paramTypes));
         });
+
+        R.rule()
+            .using(dependencies)
+            .by(r -> {
+                boolean flag = true;
+                for(int i = node.parameters.size()-1 ; i >= 0 ; i--){
+                    if(node.parameters.get(i).initializer == null) flag = false;
+                    else if(!flag && node.parameters.get(i).initializer != null){
+                        r.error(format("Default args of function %s should be placed at the end of the signature", node.name),node);
+                        break;
+                    }
+                }
+            });
 
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))

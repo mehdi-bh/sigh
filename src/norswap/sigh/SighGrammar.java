@@ -231,9 +231,16 @@ public class SighGrammar extends Grammar
         seq(_var, identifier, COLON, type, EQUALS, expression)
         .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2]));
 
+//    public rule parameter =
+//        seq(identifier, COLON, type)
+//        .push($ -> new ParameterNode($.span(), $.$[0], $.$[1]));
+
     public rule parameter =
-        seq(identifier, COLON, type)
-        .push($ -> new ParameterNode($.span(), $.$[0], $.$[1]));
+        seq(identifier, COLON, type, seq(EQUALS, expression).opt())
+            .push($ -> {
+                int n = $.$.length;
+                return new ParameterDefaultNode($.span(), $.$[0], $.$[1], n > 2 ? $.$2() : null);
+            });
 
     public rule parameters =
         parameter.sep(0, COMMA)
