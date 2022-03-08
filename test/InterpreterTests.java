@@ -106,6 +106,22 @@ public final class InterpreterTests extends TestFixture {
         assertThrows(expected, () -> check(input, null));
     }
 
+
+    // ---------------------------------------------------------------------------------------------
+//    @Test
+//    public void testFunCal(){
+////        rule = grammar.fun_decl;
+//
+//        check(
+//            "fun add (a: Int, b: Int): Int { return a + b } " +
+//                "return add(4, 7)",
+//            11L);
+//
+////        check(
+////            "fun add (a: Int = 4 , b: Int = 7): Int { return a + b } " +
+////                "return add()",
+////            11L);
+//    }
     // ---------------------------------------------------------------------------------------------
 
     @Test
@@ -250,6 +266,22 @@ public final class InterpreterTests extends TestFixture {
             "fun add (a: Int, b: Int): Int { return a + b } " +
                 "return add(4, 7)",
             11L);
+
+        check(
+            "fun add (a: Int = 4 , b: Int = 7): Int { return a + b } " +
+                "return add()",
+            11L);
+
+        check(
+            "fun add (a: Int = 4 , b: Int = 7): Int { return a + b } " +
+                "return add(100)",
+            107L);
+
+        check(
+            "fun add (a: String, b: Int = 4 , c: String = \" marto\"): String { return a + b + c } " +
+                "return add(\"Number \", 1)",
+            "Number 1 marto");
+
 
         HashMap<String, Object> point = new HashMap<>();
         point.put("x", 1L);

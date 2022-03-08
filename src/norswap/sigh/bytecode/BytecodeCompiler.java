@@ -105,7 +105,7 @@ public class BytecodeCompiler
         visitor.register(BlockNode.class,                this::block);
         visitor.register(VarDeclarationNode.class,       this::varDecl);
         visitor.register(FieldDeclarationNode.class,     this::fieldDecl);
-        visitor.register(ParameterNode.class,            this::parameter);
+        visitor.register(ParameterDefaultNode.class,     this::parameter);
         visitor.register(FunDeclarationNode.class,       this::funDecl);
         visitor.register(StructDeclarationNode.class,    this::structDecl);
 
@@ -682,7 +682,7 @@ public class BytecodeCompiler
         DeclarationNode decl = reactor.get(node, "decl");
 
         // TODO distinguish local variables from closures
-        if (decl instanceof VarDeclarationNode || decl instanceof ParameterNode) {
+        if (decl instanceof VarDeclarationNode || decl instanceof ParameterDefaultNode) {
             method.visitVarInsn(nodeAsmType(node).getOpcode(ILOAD), varIndex(node));
         }
         else if (decl instanceof StructDeclarationNode) {
@@ -751,7 +751,7 @@ public class BytecodeCompiler
 
     // ---------------------------------------------------------------------------------------------
 
-    private Object parameter (ParameterNode node) {
+    private Object parameter (ParameterDefaultNode node) {
         registerVariable(node);
         return null;
     }
@@ -875,7 +875,7 @@ public class BytecodeCompiler
 
     /**
      * Declares a variable introduce by the given declaration (which must be a {@link
-     * VarDeclarationNode} or {@link ParameterNode}, and returns its index in its JVM method
+     * VarDeclarationNode} or {@link ParameterDefaultNode}, and returns its index in its JVM method
      * scope.
      */
     private int registerVariable (DeclarationNode node) {

@@ -427,7 +427,6 @@ public final class Interpreter
         List<Object> defaultsArgs = funDecl.parameters.stream().filter(p -> p.initializer != null).collect(Collectors.toList());
 
         for(Object defArg : defaultsArgs.subList(defaultsArgs.size() - (nArgs - args.length) , defaultsArgs.size())){
-            //            paramDefault((ParameterDefaultNode) defArg);
             ParameterDefaultNode param = cast(defArg);
             assign(scope, param.name, get(param.initializer), reactor.get(param, "type"));
         }
