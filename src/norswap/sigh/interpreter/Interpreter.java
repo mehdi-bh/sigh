@@ -85,6 +85,7 @@ public final class Interpreter
         visitor.register(ExpressionStatementNode.class,  this::expressionStmt);
         visitor.register(IfNode.class,                   this::ifStmt);
         visitor.register(WhileNode.class,                this::whileStmt);
+        visitor.register(ForNode.class,                  this::forStmt);
         visitor.register(ReturnNode.class,               this::returnStmt);
 
         visitor.registerFallback(node -> null);
@@ -481,6 +482,18 @@ public final class Interpreter
 
     private Void whileStmt (WhileNode node)
     {
+        while (get(node.condition))
+            get(node.body);
+        return null;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Void forStmt (ForNode node)
+    {
+        System.out.println(node.increment);
+        get(node.var_decl);
+        get(node.body);
         while (get(node.condition))
             get(node.body);
         return null;
