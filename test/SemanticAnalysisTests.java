@@ -69,6 +69,16 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
                 "return add(\"10\",20,\"---\")" +
                 "return add(\"xxx\",20,\"---\", 30)");
 
+
+        // |=================================| WRONG DEFAULT ARGS ASSIGNATION |===================================|
+        failureInput(
+            "fun add (a: String = \"abc\", b: String = 10): String { return a + b } " +
+                "return add(\"1\",\"c\")");
+
+        failureInput(
+            "fun add (a: Int = \"abc\", b: Int = 10): String { return a + b } " +
+                "return add(\"1\",10)");
+
         // |=================================| WRONG TYPE |===================================|
         failureInput(
             "fun add (a: Int = 5, b: Int = 10): Int { return a + b } " +
