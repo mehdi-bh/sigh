@@ -60,6 +60,7 @@ public class SighGrammar extends Grammar
     public rule _else           = reserved("else");
     public rule _while          = reserved("while");
     public rule _for            = reserved("for");
+    public rule _foreach            = reserved("foreach");
     public rule _return         = reserved("return");
 
     public rule number =
@@ -219,6 +220,7 @@ public class SighGrammar extends Grammar
         this.if_stmt,
         this.while_stmt,
         this.for_stmt,
+        this.foreach_stmt,
         this.return_stmt,
         this.expression_stmt));
 
@@ -271,6 +273,10 @@ public class SighGrammar extends Grammar
     public rule for_stmt =
         seq(_for, LPAREN, var_decl, DIESE, expression, DIESE, assignment_expression, RPAREN, statement)
         .push($ -> new ForNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3]));
+
+    public rule foreach_stmt =
+        seq(_foreach, LPAREN, field_decl, DIESE, reference, RPAREN, statement)
+        .push($ -> new ForEachNode($.span(), $.$[0], $.$[1], $.$[2]));
 
     public rule return_stmt =
         seq(_return, expression.or_push_null())
