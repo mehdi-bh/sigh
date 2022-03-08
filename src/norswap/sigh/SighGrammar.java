@@ -51,6 +51,7 @@ public class SighGrammar extends Grammar
     public rule DOT             = word(".");
     public rule DOLLAR          = word("$");
     public rule COMMA           = word(",");
+    public rule DIESE           = word("#");
 
     public rule _var            = reserved("var");
     public rule _fun            = reserved("fun");
@@ -58,6 +59,8 @@ public class SighGrammar extends Grammar
     public rule _if             = reserved("if");
     public rule _else           = reserved("else");
     public rule _while          = reserved("while");
+    public rule _for            = reserved("for");
+    public rule _foreach            = reserved("foreach");
     public rule _return         = reserved("return");
 
     public rule number =
@@ -209,13 +212,15 @@ public class SighGrammar extends Grammar
     public rule type =
         seq(array_type);
 
-    public rule statement = lazy(() -> choice(
+    public rule  statement = lazy(() -> choice(
         this.block,
         this.var_decl,
         this.fun_decl,
         this.struct_decl,
         this.if_stmt,
         this.while_stmt,
+        this.for_stmt,
+        this.foreach_stmt,
         this.return_stmt,
         this.expression_stmt));
 
@@ -272,6 +277,14 @@ public class SighGrammar extends Grammar
     public rule while_stmt =
         seq(_while, expression, statement)
         .push($ -> new WhileNode($.span(), $.$[0], $.$[1]));
+
+    public rule for_stmt =
+        seq(_for, LPAREN, var_decl, DIESE, expression, DIESE, assignment_expression, RPAREN, statement)
+        .push($ -> new ForNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3]));
+
+    public rule foreach_stmt =
+        seq(_foreach, LPAREN, field_decl, DIESE, reference, RPAREN, statement)
+        .push($ -> new ForEachNode($.span(), $.$[0], $.$[1], $.$[2]));
 
     public rule return_stmt =
         seq(_return, expression.or_push_null())

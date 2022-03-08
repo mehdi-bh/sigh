@@ -1,5 +1,6 @@
 package norswap.sigh;
 
+import norswap.autumn.positions.Span;
 import norswap.sigh.ast.*;
 import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
@@ -144,6 +145,8 @@ public final class SemanticAnalysis
         walker.register(ExpressionStatementNode.class,  PRE_VISIT,  node -> {});
         walker.register(IfNode.class,                   PRE_VISIT,  analysis::ifStmt);
         walker.register(WhileNode.class,                PRE_VISIT,  analysis::whileStmt);
+        walker.register(ForNode.class,                  PRE_VISIT,  analysis::forStmt);
+        walker.register(ForEachNode.class,              PRE_VISIT,  analysis::forEachStmt);
         walker.register(ReturnNode.class,               PRE_VISIT,  analysis::returnStmt);
 
         walker.registerFallback(POST_VISIT, node -> {});
@@ -903,6 +906,46 @@ public final class SemanticAnalysis
                     node.condition);
             }
         });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private void forStmt (ForNode node) {
+        R.rule()
+            .using(node.condition, "type")
+            .by(r -> {
+                Type type = r.get(0);
+                if (!(type instanceof BoolType)) {
+                    r.error("For statement with a non-boolean condition of type: " + type,
+                        node.condition);
+                }
+            });
+
+        R.rule()
+            .using(node.var_decl, "type")
+            .by(r -> {
+                Type type = r.get(0);
+                if (!(type instanceof IntType) && !(type instanceof FloatType)){
+                    r.error("For statement iterator of type : " + type + ", must be Int or Float", node.var_decl);
+                }
+            });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private void forEachStmt (ForEachNode node) {
+        DeclarationContext maybeCtx = scope.lookup(node.iterable.name);
+
+        R.rule()
+            .using(maybeCtx.declaration.attr("type"), node.var_decl.attr("type"))
+            .by(r -> {
+                Type type1 = r.get(0);
+                Type type2 = r.get(1);
+
+                if (!type1.toString().contains(type2.toString())) {
+                    r.error("Wrong iterator type in foreach statement, iterable of type : " + type1 + " and iterator of type : " + type2, node.var_decl.type);
+                }
+            });
     }
 
     // ---------------------------------------------------------------------------------------------

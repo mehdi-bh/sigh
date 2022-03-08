@@ -1,0 +1,7 @@
+var arr: Float[] = [1,2,3,4,5]
+foreach (var i: Float # arr)
+{
+    var j: Float = i + 4
+    print("" + j)
+
+}

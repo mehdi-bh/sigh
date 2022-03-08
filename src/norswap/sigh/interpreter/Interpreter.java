@@ -1,5 +1,6 @@
 package norswap.sigh.interpreter;
 
+import norswap.autumn.positions.Span;
 import norswap.sigh.ast.*;
 import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
@@ -88,6 +89,8 @@ public final class Interpreter
         visitor.register(ExpressionStatementNode.class,  this::expressionStmt);
         visitor.register(IfNode.class,                   this::ifStmt);
         visitor.register(WhileNode.class,                this::whileStmt);
+        visitor.register(ForNode.class,                  this::forStmt);
+        visitor.register(ForEachNode.class,              this::forEachStmt);
         visitor.register(ReturnNode.class,               this::returnStmt);
 
         visitor.registerFallback(node -> null);
@@ -497,6 +500,39 @@ public final class Interpreter
     {
         while (get(node.condition))
             get(node.body);
+        return null;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Void forStmt (ForNode node)
+    {
+        Scope scope = reactor.get(node.var_decl, "scope");
+        Type type = reactor.get(node, "type");
+
+        varDecl(node.var_decl);
+
+        while(get(node.condition)){
+            get(node.body);
+            assign(scope, node.var_decl.name, get(node.increment), type);
+        }
+        return null;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Void forEachStmt (ForEachNode node)
+    {
+        Scope scope = reactor.get(node.var_decl, "scope");
+        Type type = reactor.get(node, "type");
+
+        varDecl(node.var_decl);
+
+        Object[] array = getNonNullArray(node.iterable);
+        for (Object el : array) {
+            assign(scope, node.var_decl.name, el, type);
+            get(node.body);
+        }
         return null;
     }
 
