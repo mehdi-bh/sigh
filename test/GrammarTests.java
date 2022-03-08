@@ -159,7 +159,7 @@ public class GrammarTests extends AutumnTestFixture {
 
         successExpect("fun f (x: Int): Int { return 1 }",
             new FunDeclarationNode(null, "f",
-                asList(new ParameterNode(null, "x", new SimpleTypeNode(null, "Int"))),
+                asList(new ParameterDefaultNode(null, "x", new SimpleTypeNode(null, "Int"),null)),
                 new SimpleTypeNode(null, "Int"),
                 new BlockNode(null, asList(new ReturnNode(null, intlit(1))))));
     }
