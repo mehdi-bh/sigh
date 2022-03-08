@@ -857,8 +857,17 @@ public final class SemanticAnalysis
             .by(r -> {
                 Type type = r.get(0);
                 if (!(type instanceof BoolType)) {
-                    r.error("While statement with a non-boolean condition of type: " + type,
+                    r.error("For statement with a non-boolean condition of type: " + type,
                         node.condition);
+                }
+            });
+
+        R.rule()
+            .using(node.var_decl, "type")
+            .by(r -> {
+                Type type = r.get(0);
+                if (!(type instanceof IntType) && !(type instanceof FloatType)){
+                    r.error("For statement iterator of type : " + type + ", must be Int or Float", node.var_decl);
                 }
             });
     }

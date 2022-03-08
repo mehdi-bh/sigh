@@ -491,11 +491,15 @@ public final class Interpreter
 
     private Void forStmt (ForNode node)
     {
-        System.out.println(node.increment);
-        get(node.var_decl);
-        get(node.body);
-        while (get(node.condition))
+        Scope scope = reactor.get(node.var_decl, "scope");
+        Type type = reactor.get(node, "type");
+
+        varDecl(node.var_decl);
+
+        while(get(node.condition)){
             get(node.body);
+            assign(scope, node.var_decl.name, get(node.increment), type);
+        }
         return null;
     }
 
