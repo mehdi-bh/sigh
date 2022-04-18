@@ -1,0 +1,44 @@
+// Test fct basique avec argument ANY
+fun test1 (a: Any)
+{
+    print(a)
+}
+
+test1("t1")
+test1(1)
+
+// Test fct avec return ANY
+fun test2 (a: String): Any
+{
+    return a
+}
+
+var ret: String = test2("t2")
+print(ret)
+
+// Test fct avec return ANY sans return
+fun test3 (a: String): Any
+{
+    print("t3")
+}
+
+test3("t3")
+
+// Test avec un return int
+fun test4 (a: Any) : Any
+{
+    return a
+}
+
+var t4: Int = test4(5)
+print(t4 + " ")
+
+// Test de retourner un String dans un type primitif
+// Ca doit crash et renvoyer la bonne erreur
+fun test5 (a: Any) : Any
+{
+    return a
+}
+
+var t5: Bool = test5("aze")
+print(t5 + "")

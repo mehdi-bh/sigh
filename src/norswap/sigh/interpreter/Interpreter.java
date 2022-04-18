@@ -6,6 +6,7 @@ import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
 import norswap.sigh.scopes.Scope;
 import norswap.sigh.scopes.SyntheticDeclarationNode;
+import norswap.sigh.types.AnyType;
 import norswap.sigh.types.FloatType;
 import norswap.sigh.types.IntType;
 import norswap.sigh.types.StringType;
@@ -179,11 +180,11 @@ public final class Interpreter
         Object right = get(node.right);
 
         if (node.operator == BinaryOperator.ADD
-                && (leftType instanceof StringType || rightType instanceof StringType))
+                && (left instanceof String || right instanceof String || leftType instanceof StringType || rightType instanceof StringType))
             return convertToString(left) + convertToString(right);
 
-        boolean floating = leftType instanceof FloatType || rightType instanceof FloatType;
-        boolean numeric  = floating || leftType instanceof IntType;
+        boolean floating = left instanceof Double || right instanceof Double;
+        boolean numeric  = floating || left instanceof Long;
 
         if (numeric)
             return numericOp(node, floating, (Number) left, (Number) right);
@@ -194,6 +195,19 @@ public final class Interpreter
             case NOT_EQUALS:
                 return  leftType.isPrimitive() ? !left.equals(right) : left != right;
         }
+
+        // Any type holding
+//        if (leftType instanceof AnyType || rightType instanceof AnyType) {
+//            if (leftType instanceof AnyType && rightType instanceof AnyType) {
+//                if ()
+//            }
+//            else if (leftType instanceof AnyType){
+//
+//            }
+//            else {
+//
+//            }
+//        }
 
         throw new Error("should not reach here");
     }
@@ -573,6 +587,9 @@ public final class Interpreter
 
     private void assign (Scope scope, String name, Object value, Type targetType)
     {
+        if (targetType.isPrimitive() && value instanceof String)
+            throw new Error("Cannot assign a String into a primitive type");
+
         if (value instanceof Long && targetType instanceof FloatType)
             value = ((Long) value).doubleValue();
         storage.set(scope, name, value);

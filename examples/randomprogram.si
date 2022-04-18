@@ -1,7 +1,51 @@
+// Test foreach
 var arr: Float[] = [1,2,3,4,5]
 foreach (var i: Float # arr)
 {
     var j: Float = i + 4
     print("" + j)
-
 }
+
+// Méthode générique
+fun sum (a: Any[]): Any
+{
+    var j: Float = 0
+    foreach (var i: Any # a)
+    {
+        j = j + i
+    }
+    return j
+}
+
+var arr: Float[] = [1,2,3,4,5]
+sum(arr)
+
+// Méthode générique
+fun sum (a: Int[]): Int
+{
+    var j: Int = 0
+    foreach (var i: Int # a)
+    {
+        j = j + i
+    }
+    return j
+}
+
+var arr: Int[] = [1,2,3,4,5]
+print(sum(arr) + "")
+
+// Variable type
+var i: Any = 4
+print(i)
+
+// Test généricité paires
+struct Pair {
+    var a: Any
+    var b: Any
+}
+
+fun sum_pair (pair: Pair): Any {
+    return pair.a + pair.b
+}
+
+print(sum_pair($Pair(2, 3)))

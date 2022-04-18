@@ -1,6 +1,5 @@
 package norswap.sigh;
 
-import norswap.autumn.positions.Span;
 import norswap.sigh.ast.*;
 import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
@@ -523,15 +522,17 @@ public final class SemanticAnalysis
         if (left instanceof IntType)
             if (right instanceof IntType)
                 r.set(0, IntType.INSTANCE);
-            else if (right instanceof FloatType)
+            else if (right instanceof FloatType || right instanceof AnyType)
                 r.set(0, FloatType.INSTANCE);
             else
                 r.error(arithmeticError(node, "Int", right), node);
         else if (left instanceof FloatType)
-            if (right instanceof IntType || right instanceof FloatType)
+            if (right instanceof IntType || right instanceof FloatType || right instanceof AnyType)
                 r.set(0, FloatType.INSTANCE);
             else
                 r.error(arithmeticError(node, "Float", right), node);
+        else if (left instanceof AnyType || right instanceof AnyType)
+            r.set(0, AnyType.INSTANCE);
         else
             r.error(arithmeticError(node, left, right), node);
     }
@@ -665,6 +666,9 @@ public final class SemanticAnalysis
      */
     private static boolean isAssignableTo (Type a, Type b)
     {
+        if (a instanceof AnyType || b instanceof AnyType)
+            return true;
+
         if (a instanceof VoidType || b instanceof VoidType)
             return false;
 
@@ -858,7 +862,7 @@ public final class SemanticAnalysis
         .by(r -> {
             boolean returns = r.get(0);
             Type returnType = r.get(1);
-            if (!returns && !(returnType instanceof VoidType))
+            if (!(returnType instanceof AnyType) && !returns && !(returnType instanceof VoidType))
                 r.error("Missing return in function.", node);
             // NOTE: The returned value presence & type is checked in returnStmt().
         });
