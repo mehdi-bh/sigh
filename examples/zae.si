@@ -1,4 +1,73 @@
-foreach (var i: Int = 0 # i < 5 # i = i + 1)
+// Méthode générique
+fun sum (a: Any[]): Any
 {
-    print(i + "")
+    var j: Any = 0
+    foreach (var i: Any # a)
+    {
+        j = j + i
+    }
+    return j
 }
+
+var arr1: String[] = ["f","d","p"]
+var arr2: Int[] = [1,2,3]
+
+print(sum(arr1))
+print(sum(arr2))
+
+// ------------------------------------
+
+// Variable type
+var i: Any = 4
+print(i)
+
+// ------------------------------------
+
+// Test généricité paires
+struct Pair {
+    var a: Any
+    var b: Any
+}
+
+fun sum_pair (pair: Pair): Any {
+    return pair.a + pair.b
+}
+
+print(sum_pair($Pair(2, 3)))
+
+// ------------------------------------
+
+// Test fct basique avec argument ANY
+fun test1 (a: Any)
+{
+    print(a)
+}
+
+test1("t1")
+test1(1)
+
+// Test fct avec return ANY
+fun test2 (a: String): Any
+{
+    return a
+}
+
+var ret: String = test2("t2")
+print(ret)
+
+// Test fct avec return ANY sans return
+fun test3 (a: String): Any
+{
+    print("t3")
+}
+
+test3("t3")
+
+// Test avec un return int
+fun test4 (a: Any) : Any
+{
+    return a
+}
+
+var t4: Int = test4(5)
+print(t4 + " ")

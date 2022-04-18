@@ -587,7 +587,8 @@ public final class Interpreter
 
     private void assign (Scope scope, String name, Object value, Type targetType)
     {
-        if (targetType.isPrimitive() && value instanceof String)
+        // TODO : Encore des trucs douteux par ici avec les forloops
+        if (targetType != null && targetType.isPrimitive() && value instanceof String)
             throw new Error("Cannot assign a String into a primitive type");
 
         if (value instanceof Long && targetType instanceof FloatType)

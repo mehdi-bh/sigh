@@ -20,20 +20,6 @@ fun sum (a: Any[]): Any
 var arr: Float[] = [1,2,3,4,5]
 sum(arr)
 
-// Méthode générique
-fun sum (a: Int[]): Int
-{
-    var j: Int = 0
-    foreach (var i: Int # a)
-    {
-        j = j + i
-    }
-    return j
-}
-
-var arr: Int[] = [1,2,3,4,5]
-print(sum(arr) + "")
-
 // Variable type
 var i: Any = 4
 print(i)
