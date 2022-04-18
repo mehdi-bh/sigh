@@ -196,19 +196,6 @@ public final class Interpreter
                 return  leftType.isPrimitive() ? !left.equals(right) : left != right;
         }
 
-        // Any type holding
-//        if (leftType instanceof AnyType || rightType instanceof AnyType) {
-//            if (leftType instanceof AnyType && rightType instanceof AnyType) {
-//                if ()
-//            }
-//            else if (leftType instanceof AnyType){
-//
-//            }
-//            else {
-//
-//            }
-//        }
-
         throw new Error("should not reach here");
     }
 
