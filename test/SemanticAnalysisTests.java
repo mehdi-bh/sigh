@@ -116,6 +116,71 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
     // ---------------------------------------------------------------------------------------------
 
+    @Test public void testFor() {
+        successInput("for (var i: Int = 0 # i < 5 # i = i + 1) {}");
+        successInput("for (var i: Float = 0 # i < 5.2 # i = i + 1.5) {}");
+        successInput("for (var i: Float = 0.5 # i < 5.2 # i = i + 1.5) {}");
+        successInput("" +
+            "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +
+            "for (var i: Int = 0 # i < 5 # i = i + 1) {" +
+            "print(arr[i])" +
+            "}");
+        failureInput("for (var i: String = 0 # i < 5 # i = i + 1) {}");
+        failureInput("for (var i: String = \"aze\" # i < \"ZZZ\" # i = i + \"z\") {}");
+        failureInput("for (var i: Bool = true # i == true # i = i + false) {}");
+    }
+
+    @Test public void testForEach() {
+        successInput("" +
+            "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +
+            "foreach (var i: String # arr) {}");
+        successInput("" +
+            "var arr: Int[] = [1,2,3]" +
+            "foreach (var i: Int # arr) {}");
+        successInput("" +
+            "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +
+            "foreach (var i: String # arr) {" +
+            "print(i)" +
+            "}");
+        successInput("" +
+            "var arr: Int[] = [1,2,3]" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        successInput("" +
+            "var arr: Int[] = [1,2,3]" +
+            "foreach (var i: Any # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        successInput("" +
+            "var arr: Any[] = [1,2,3]" +
+            "foreach (var i: Any # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        successInput("" +
+            "var arr: Any[] = [1,2,3]" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        failureInput("" +
+            "var arr: Int[] = [1,2,3]" +
+            "foreach (var i: String # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        failureInput("" +
+            "var arr: String[] = [1,2,3]" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        failureInput("" +
+            "var arr: String[] = [1,2,3]" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     @Test public void testLiteralsAndUnary() {
         successInput("return 42");
         successInput("return 42.0");

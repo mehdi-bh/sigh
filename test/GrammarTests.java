@@ -79,6 +79,21 @@ public class GrammarTests extends AutumnTestFixture {
 
     // ---------------------------------------------------------------------------------------------
 
+    // @Test
+    public void testForStatement () {
+        rule = grammar.statement;
+
+        successExpect("for (var i: Int = 0 # i < 5 # i = i + 1) {}",
+            new ForNode(null,
+                new VarDeclarationNode(null, "i", simpleType("Int"), intlit(0)),
+                new BinaryExpressionNode(null, "i", "<", intlit(5)),
+                new AssignmentNode(null, "i", "i + 1"),
+                new BlockNode(null, null)
+                ));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     @Test
     public void testLiteralsAndUnary () {
         rule = grammar.expression;

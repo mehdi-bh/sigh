@@ -1,0 +1,6 @@
+var arr1: String[] = ["true","false","true"]
+var arr2: Int[] = [1,2,3]
+
+foreach (var i: Int # arr2) {
+    print("" + i)
+}

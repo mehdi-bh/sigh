@@ -71,3 +71,10 @@ fun test4 (a: Any) : Any
 
 var t4: Int = test4(5)
 print(t4 + " ")
+
+// Test for loop
+for (var i: Int = 0 # i < 5 # i = i + 1) {
+    print("" + i)
+}
+
+for (var i: Int = 0 # i < 5 # i = i + 1) {}

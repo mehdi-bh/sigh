@@ -69,6 +69,7 @@ public final class Interpreter
         visitor.register(IntLiteralNode.class,           this::intLiteral);
         visitor.register(FloatLiteralNode.class,         this::floatLiteral);
         visitor.register(StringLiteralNode.class,        this::stringLiteral);
+        visitor.register(BoolLiteralNode.class,          this::boolLiteral);
         visitor.register(ReferenceNode.class,            this::reference);
         visitor.register(ConstructorNode.class,          this::constructor);
         visitor.register(ArrayLiteralNode.class,         this::arrayLiteral);
@@ -148,6 +149,10 @@ public final class Interpreter
     }
 
     private String stringLiteral (StringLiteralNode node) {
+        return node.value;
+    }
+
+    private Boolean boolLiteral (BoolLiteralNode node) {
         return node.value;
     }
 

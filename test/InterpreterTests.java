@@ -359,6 +359,18 @@ public final class InterpreterTests extends TestFixture {
     // ---------------------------------------------------------------------------------------------
 
     @Test
+    public void testFor () {
+
+    }
+
+    @Test
+    public void testForEach () {
+
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
     public void testInference () {
         check("var array: Int[] = []", null);
         check("var array: String[] = []", null);

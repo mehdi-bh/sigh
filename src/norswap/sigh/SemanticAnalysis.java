@@ -946,7 +946,7 @@ public final class SemanticAnalysis
                 Type type1 = r.get(0);
                 Type type2 = r.get(1);
 
-                if (!type1.toString().contains(type2.toString())) {
+                if (!(type1.toString().contains(AnyType.INSTANCE.name())) && !(type2 instanceof AnyType)  && !type1.toString().contains(type2.toString())) {
                     r.error("Wrong iterator type in foreach statement, iterable of type : " + type1 + " and iterator of type : " + type2, node.var_decl.type);
                 }
             });
