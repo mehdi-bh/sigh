@@ -360,12 +360,167 @@ public final class InterpreterTests extends TestFixture {
 
     @Test
     public void testFor () {
-
+        check("" +
+            "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +
+            "for (var i: Int = 0 # i < 3 # i = i + 1) {" +
+            "print(arr[i])" +
+            "}"
+        ,
+        null,
+        "a\nz\ne\n");
+        check("" +
+                "var arr: String[] = [\"a\",\"z\",\"e\",\"r\"]\n" +
+                "for (var i: Int = 0 # i < 4 # i = i + 2) {" +
+                "print(arr[i])" +
+                "}"
+            ,
+            null,
+            "a\ne\n");
+        check("" +
+                "var arr: String[] = [\"a\",\"z\",\"e\",\"r\"]\n" +
+                "for (var i: Int = 3 # i >= 0 # i = i - 1) {" +
+                "print(arr[i])" +
+                "}"
+            ,
+            null,
+            "r\ne\nz\na\n");
+        check("" +
+                "var arr: String[] = [\"a\",\"z\",\"e\",\"r\"]\n" +
+                "for (var i: Int = 3 # i >= 0 # i = i - 2) {" +
+                "print(arr[i])" +
+                "}"
+            ,
+            null,
+            "r\nz\n");
+        check("" +
+                "for (var i: Float = 0 # i < 4 # i = i + 1) {" +
+                "print(\"\" + i)" +
+                "}"
+            ,
+            null,
+            "0.0\n1.0\n2.0\n3.0\n");
     }
 
     @Test
     public void testForEach () {
+        check("" +
+            "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +
+            "foreach (var i: String # arr) {" +
+                "print(i)" +
+                "}"
+            ,
+            null,
+            "a\nz\ne\n");
+        check("" +
+                "var arr: Int[] = [1,2,3]\n" +
+                "foreach (var i: Int # arr) {" +
+                "print(\"\" + i)" +
+                "}"
+            ,
+            null,
+            "1\n2\n3\n");
+        check("" +
+                "var arr: Float[] = [1.0,2.0,3.0]\n" +
+                "foreach (var i: Float # arr) {" +
+                "print(\"\" + i)" +
+                "}"
+            ,
+            null,
+            "1.0\n2.0\n3.0\n");
+        check("" +
+                "var arr: Float[] = [1.0,2.0,3.0]\n" +
+                "foreach (var i: Any # arr) {" +
+                "print(\"\" + i)" +
+                "}"
+            ,
+            null,
+            "1.0\n2.0\n3.0\n");
+        check("" +
+                "var arr: Any[] = [1.0,2.0,3.0]\n" +
+                "foreach (var i: Float # arr) {" +
+                "print(\"\" + i)" +
+                "}"
+            ,
+            null,
+            "1.0\n2.0\n3.0\n");
+        check("" +
+                "var arr: Any[] = [1.0,2.0,3.0]\n" +
+                "foreach (var i: Any # arr) {" +
+                "print(\"\" + i)" +
+                "}"
+            ,
+            null,
+            "1.0\n2.0\n3.0\n");
+    }
 
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
+    public void testAny () {
+        rule = grammar.root;
+
+        check("" +
+            "fun test1 (a: Any){\n" +
+            "    print(a)\n" +
+            "}\n" +
+            "\n" +
+            "test1(\"t1\")\n" +
+            "test1(1)"
+        ,
+            null,
+            "t1\n1\n");
+        check("" +
+                "fun test2 (a: String): Any\n" +
+                "{\n" +
+                "    return a\n" +
+                "}\n" +
+                "\n" +
+                "var ret: String = test2(\"t2\")\n" +
+                "print(ret)"
+            ,
+            null,
+            "t2\n");
+        check("" +
+                "fun test3 (a: String): Any\n" +
+                "{\n" +
+                "    print(\"t3\")\n" +
+                "}\n" +
+                "\n" +
+                "test3(\"t3\")"
+            ,
+            null,
+            "t3\n");
+        check("" +
+                "fun test4 (a: Any) : Any\n" +
+                "{\n" +
+                "    return a\n" +
+                "}\n" +
+                "\n" +
+                "var t4: Int = test4(5)\n" +
+                "print(t4 + \"\")"
+            ,
+            null,
+            "5\n");
+        check("" +
+                "var i: Any = 4\n" +
+                "print(i)"
+            ,
+            null,
+            "4\n");
+        check("" +
+                "struct Pair {\n" +
+                "    var a: Any\n" +
+                "    var b: Any\n" +
+                "}\n" +
+                "\n" +
+                "fun sum_pair (pair: Pair): Any {\n" +
+                "    return pair.a + pair.b\n" +
+                "}\n" +
+                "\n" +
+                "print(sum_pair($Pair(2, 3)))"
+            ,
+            null,
+            "5\n");
     }
 
     // ---------------------------------------------------------------------------------------------

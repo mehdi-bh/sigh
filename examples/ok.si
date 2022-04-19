@@ -1,6 +1,5 @@
 // Test fct basique avec argument ANY
-fun test1 (a: Any)
-{
+fun test1 (a: Any){
     print(a)
 }
 

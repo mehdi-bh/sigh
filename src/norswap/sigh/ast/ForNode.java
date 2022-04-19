@@ -20,6 +20,6 @@ public final class ForNode extends StatementNode
 
     @Override
     public String contents () {
-        return null;
+        return "";
     }
 }

@@ -181,6 +181,51 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
     // ---------------------------------------------------------------------------------------------
 
+    @Test
+    public void testAny () {
+        successInput("" +
+            "fun test1 (a: Any)" +
+            "{\n" +
+            "    print(a)\n" +
+            "}\n" +
+            "\n" +
+            "test1(\"t1\")\n" +
+            "test1(1)");
+        successInput("" +
+            "fun test2 (a: String): Any\n" +
+            "{\n" +
+            "    return a\n" +
+            "}\n" +
+            "\n" +
+            "var ret: String = test2(\"t2\")\n" +
+            "print(ret)");
+        successInput("" +
+            "fun test3 (a: String): Any\n" +
+            "{\n" +
+            "    print(\"t3\")\n" +
+            "}\n" +
+            "\n" +
+            "test3(\"t3\")");
+        successInput("" +
+            "fun test4 (a: Any) : Any\n" +
+            "{\n" +
+            "    return a\n" +
+            "}\n" +
+            "\n" +
+            "var t4: Int = test4(5)\n" +
+            "print(t4 + \" \")");
+        successInput("" +
+            "fun test5 (a: Any) : Any\n" +
+            "{\n" +
+            "    return a\n" +
+            "}\n" +
+            "\n" +
+            "var t5: Bool = test5(\"aze\")\n" +
+            "print(t5 + \"\")");
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     @Test public void testLiteralsAndUnary() {
         successInput("return 42");
         successInput("return 42.0");

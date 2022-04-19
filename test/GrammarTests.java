@@ -3,6 +3,8 @@ import norswap.sigh.SighGrammar;
 import norswap.sigh.ast.*;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+
 import static java.util.Arrays.asList;
 import static norswap.sigh.ast.BinaryOperator.*;
 
@@ -79,6 +81,33 @@ public class GrammarTests extends AutumnTestFixture {
 
     // ---------------------------------------------------------------------------------------------
 
+    @Test
+    public void testAny () {
+        rule = grammar.statement;
+
+        successExpect("var x: Any = 1", new VarDeclarationNode(null,
+            "x", new SimpleTypeNode(null, "Any"), intlit(1)));
+
+        successExpect("struct P { var x: Any; var y: Any }",
+            new StructDeclarationNode(null, "P", asList(
+                new FieldDeclarationNode(null, "x", new SimpleTypeNode(null, "Any")),
+                new FieldDeclarationNode(null, "y", new SimpleTypeNode(null, "Any")))));
+
+        successExpect("fun f (x: Any): Any { return 1 }",
+            new FunDeclarationNode(null, "f",
+                asList(new ParameterDefaultNode(null, "x", new SimpleTypeNode(null, "Any"),null)),
+                new SimpleTypeNode(null, "Any"),
+                new BlockNode(null, asList(new ReturnNode(null, intlit(1))))));
+
+        successExpect("fun f (x: Any = 5): Any {}",
+            new FunDeclarationNode(null, "f",
+                asList(new ParameterDefaultNode(null, "x", new SimpleTypeNode(null, "Any"),intlit(5))),
+                new SimpleTypeNode(null, "Any"),
+                new BlockNode(null, new ArrayList<>())));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     // @Test
     public void testForStatement () {
         rule = grammar.statement;
@@ -86,9 +115,9 @@ public class GrammarTests extends AutumnTestFixture {
         successExpect("for (var i: Int = 0 # i < 5 # i = i + 1) {}",
             new ForNode(null,
                 new VarDeclarationNode(null, "i", simpleType("Int"), intlit(0)),
-                new BinaryExpressionNode(null, "i", "<", intlit(5)),
-                new AssignmentNode(null, "i", "i + 1"),
-                new BlockNode(null, null)
+                new BinaryExpressionNode(null, new ReferenceNode(null, "i"), GREATER_EQUAL, intlit(5)),
+                new AssignmentNode(null, new ReferenceNode(null, "i"), new BinaryExpressionNode(null, new ReferenceNode(null, "i"), ADD, intlit(1))),
+                new BlockNode(null, new ArrayList<>())
                 ));
     }
 
