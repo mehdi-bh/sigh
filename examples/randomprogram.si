@@ -1,10 +1,35 @@
 // Test foreach
 var arr: Float[] = [1,2,3,4,5]
-foreach (var i: Float # arr)
+var lc: Float[] = [x + 100 for var x: Float # arr]
+
+var lesStrings: String[] = ["a", "b", "c"]
+var strs: String[] = [s + " test" for var s: Any # arr]
+
+fun testListComprStr(a: String[]){
+    var i: Int = 0
+    while i < a.length {
+        print("value : "+a[i])
+        i = i + 1
+    }
+}
+
+fun testListCompr(a: Float[]){
+    var i: Int = 0
+    while i < a.length {
+        print("value : "+a[i])
+        i = i + 1
+    }
+}
+//testListCompr(arr)
+testListCompr(lc)
+testListComprStr(strs)
+
+foreach (var i: Float # lc)
 {
-    var j: Float = i + 4
+    var j: Float = i * 4
     print("" + j)
 }
+
 
 // Méthode générique
 fun sum (a: Any[]): Any
@@ -19,6 +44,8 @@ fun sum (a: Any[]): Any
 
 var arr: Float[] = [1,2,3,4,5]
 sum(arr)
+//var sss: Float = sum(lc)
+//print("" + sss)
 
 // Variable type
 var i: Any = 4

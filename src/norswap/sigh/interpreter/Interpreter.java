@@ -1,14 +1,11 @@
 package norswap.sigh.interpreter;
 
-import norswap.autumn.positions.Span;
 import norswap.sigh.ast.*;
 import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
 import norswap.sigh.scopes.Scope;
 import norswap.sigh.scopes.SyntheticDeclarationNode;
-import norswap.sigh.types.AnyType;
 import norswap.sigh.types.FloatType;
-import norswap.sigh.types.IntType;
 import norswap.sigh.types.StringType;
 import norswap.sigh.types.Type;
 import norswap.uranium.Reactor;
@@ -80,11 +77,13 @@ public final class Interpreter
         visitor.register(UnaryExpressionNode.class,      this::unaryExpression);
         visitor.register(BinaryExpressionNode.class,     this::binaryExpression);
         visitor.register(AssignmentNode.class,           this::assignment);
+        visitor.register(ListComprNode.class,            this::listComprNode);
 
         // statement groups & declarations
         visitor.register(RootNode.class,                 this::root);
         visitor.register(BlockNode.class,                this::block);
         visitor.register(VarDeclarationNode.class,       this::varDecl);
+        visitor.register(ArrListComprDeclarationNode.class,       this::arrListComprDeclarationNode);
         // no need to visitor other declarations! (use fallback)
 
         // statements
@@ -112,7 +111,8 @@ public final class Interpreter
 
     private Object run (SighNode node) {
         try {
-            return visitor.apply(node);
+            Object x = visitor.apply(node);
+            return x;
         } catch (InterpreterException | Return | PassthroughException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -135,7 +135,10 @@ public final class Interpreter
     // ---------------------------------------------------------------------------------------------
 
     private <T> T get(SighNode node) {
-        return cast(run(node));
+        Object x = run(node);
+        T c = cast(x);
+        return c;
+//        return cast(run(node));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -165,7 +168,8 @@ public final class Interpreter
     // ---------------------------------------------------------------------------------------------
 
     private Object[] arrayLiteral (ArrayLiteralNode node) {
-        return map(node.components, new Object[0], visitor);
+        Object[] x = map(node.components, new Object[0], visitor);
+        return x;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -536,7 +540,7 @@ public final class Interpreter
         Object[] array = getNonNullArray(node.iterable);
         for (Object el : array) {
             assign(scope, node.var_decl.name, el, type);
-            get(node.body);
+            Object a = get(node.body);
         }
         return null;
     }
@@ -549,6 +553,7 @@ public final class Interpreter
         DeclarationNode decl = reactor.get(node, "decl");
 
         if (decl instanceof VarDeclarationNode
+        || decl instanceof ArrListComprDeclarationNode
         || decl instanceof ParameterNode
         || decl instanceof ParameterDefaultNode
         || decl instanceof SyntheticDeclarationNode
@@ -575,10 +580,41 @@ public final class Interpreter
         return null;
     }
 
+    private Object[] listComprNode(ListComprNode node){
+
+        Scope scope = reactor.get(node.var_decl, "scope");
+        Type type = reactor.get(node, "type");
+
+        varDecl(node.var_decl);
+
+        Object[] array = getNonNullArray(node.iterable);
+        Object[] result = new Object[array.length];
+        int cpt = 0;
+        for (Object el : array) {
+            assign(scope, node.var_decl.name, el, type);
+            Object a = get(node.body);
+            result[cpt++] = a;
+        }
+//        System.out.println("res : " + Arrays.toString(result));
+        return result;
+
+    }
+
+    private Object[] arrListComprDeclarationNode (ArrListComprDeclarationNode node)
+    {
+        Scope scope = reactor.get(node, "scope");
+        Type type = reactor.get(node,"type");
+
+        Object[] x = get(node.listComprNode);
+        assign(scope, node.name, x, type);
+        return x;
+    }
+
     // ---------------------------------------------------------------------------------------------
 
     private void assign (Scope scope, String name, Object value, Type targetType)
     {
+
         // TODO : Encore des trucs douteux par ici avec les forloops
         if (targetType != null && targetType.isPrimitive() && value instanceof String)
             throw new Error("Cannot assign a String into a primitive type");

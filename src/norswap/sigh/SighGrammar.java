@@ -214,6 +214,7 @@ public class SighGrammar extends Grammar
 
     public rule  statement = lazy(() -> choice(
         this.block,
+        this.list_compr_decl,
         this.var_decl,
         this.fun_decl,
         this.struct_decl,
@@ -282,9 +283,20 @@ public class SighGrammar extends Grammar
         seq(_for, LPAREN, var_decl, DIESE, expression, DIESE, assignment_expression, RPAREN, statement)
         .push($ -> new ForNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3]));
 
+    public rule foreach_body =
+        seq(field_decl, DIESE, reference);
+
     public rule foreach_stmt =
-        seq(_foreach, LPAREN, field_decl, DIESE, reference, RPAREN, statement)
+        seq(_foreach, LPAREN, foreach_body, RPAREN, statement)
         .push($ -> new ForEachNode($.span(), $.$[0], $.$[1], $.$[2]));
+
+    public rule list_compr_stmt =
+        seq(LSQUARE, expression , _for , foreach_body, RSQUARE)
+            .push($ -> new ListComprNode($.span(), $.$[0], $.$[1], $.$[2]));
+
+    public rule list_compr_decl =
+        seq(_var, identifier, COLON, type, EQUALS, list_compr_stmt)
+            .push($ -> new ArrListComprDeclarationNode($.span(), $.$[0],$.$[1],$.$[2]));
 
     public rule return_stmt =
         seq(_return, expression.or_push_null())
