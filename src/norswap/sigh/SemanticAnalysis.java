@@ -123,6 +123,8 @@ public final class SemanticAnalysis
         walker.register(BinaryExpressionNode.class,     PRE_VISIT,  analysis::binaryExpression);
         walker.register(AssignmentNode.class,           PRE_VISIT,  analysis::assignment);
 
+//        walker.register(ListComprNode.class,            PRE_VISIT,  analysis::listComprNode);
+
         // types
         walker.register(SimpleTypeNode.class,           PRE_VISIT,  analysis::simpleType);
         walker.register(ArrayTypeNode.class,            PRE_VISIT,  analysis::arrayType);
@@ -131,6 +133,7 @@ public final class SemanticAnalysis
         walker.register(RootNode.class,                 PRE_VISIT,  analysis::root);
         walker.register(BlockNode.class,                PRE_VISIT,  analysis::block);
         walker.register(VarDeclarationNode.class,       PRE_VISIT,  analysis::varDecl);
+        walker.register(ArrListComprDeclarationNode.class,       PRE_VISIT,  analysis::arrListComprDeclarationNode);
         walker.register(FieldDeclarationNode.class,     PRE_VISIT,  analysis::fieldDecl);
         walker.register(ParameterDefaultNode.class,     PRE_VISIT,  analysis::parameterDefault);
         walker.register(FunDeclarationNode.class,       PRE_VISIT,  analysis::funDecl);
@@ -146,12 +149,15 @@ public final class SemanticAnalysis
         walker.register(WhileNode.class,                PRE_VISIT,  analysis::whileStmt);
         walker.register(ForNode.class,                  PRE_VISIT,  analysis::forStmt);
         walker.register(ForEachNode.class,              PRE_VISIT,  analysis::forEachStmt);
+        walker.register(ListComprNode.class,            PRE_VISIT,  analysis::listComprStmt);
         walker.register(ReturnNode.class,               PRE_VISIT,  analysis::returnStmt);
 
         walker.registerFallback(POST_VISIT, node -> {});
 
         return walker;
     }
+
+
 
     // endregion
     // =============================================================================================
@@ -772,6 +778,77 @@ public final class SemanticAnalysis
         });
     }
 
+//    private void listComprNode (ListComprNode node) {
+//        DeclarationContext maybeCtx = scope.lookup(node.iterable.name);
+//
+//        R.rule()
+//            .using(maybeCtx.declaration.attr("type"), node.var_decl.attr("type"))
+//            .by(r -> {
+//                Type type1 = r.get(0);
+//                Type type2 = r.get(1);
+//
+//                if (!(type1.toString().contains(AnyType.INSTANCE.name())) &&
+//                    !(type2 instanceof AnyType)  &&
+//                    !type1.toString().contains(type2.toString())) {
+//                    r.error("Wrong iterator type in foreach statement, iterable of type : " + type1 + " and iterator of type : " + type2, node.var_decl.type);
+//                }
+//            });
+//    }
+
+    private void listComprStmt(ListComprNode node){
+//        this.inferenceContext = node;
+//
+//        scope.declare(node., node);
+//        R.set(node, "scope", scope);
+//
+//        R.rule(node, "type")
+//            .using(node.type, "value")
+//            .by(Rule::copyFirst);
+
+
+        DeclarationContext maybeCtx = scope.lookup(node.iterable.name);
+
+        R.rule()
+            .using(maybeCtx.declaration.attr("type"), node.var_decl.attr("type"))
+            .by(r -> {
+                Type type1 = r.get(0);
+                Type type2 = r.get(1);
+
+                if (!(type1.toString().contains(AnyType.INSTANCE.name())) &&
+                    !(type2 instanceof AnyType)  &&
+                    !type1.toString().contains(type2.toString())) {
+                    r.error("Wrong iterator type in foreach statement, iterable of type : " + type1 + " and iterator of type : " + type2, node.var_decl.type);
+                }
+
+            });
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private void arrListComprDeclarationNode (ArrListComprDeclarationNode node) {
+        this.inferenceContext = node;
+
+        scope.declare(node.name, node);
+        R.set(node, "scope", scope);
+
+        R.rule(node, "type")
+            .using(node.type, "value")
+            .by(Rule::copyFirst);
+        //TODO Check case where init var without [] => var s: String = [listCompr]
+//        R.rule()
+//            .using(node.type.attr("value"), node.listComprNode.attr("type"))
+//            .by(r -> {
+//                Type expected = r.get(0);
+//                Type actual = r.get(1);
+//
+//                if (!isAssignableTo(actual, expected))
+//                    r.error(format(
+//                            "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+//                            node.name, expected, actual),
+//                        node.listComprNode);
+//            });
+    }
+
     // ---------------------------------------------------------------------------------------------
 
     private void fieldDecl (FieldDeclarationNode node)
@@ -946,11 +1023,15 @@ public final class SemanticAnalysis
                 Type type1 = r.get(0);
                 Type type2 = r.get(1);
 
-                if (!(type1.toString().contains(AnyType.INSTANCE.name())) && !(type2 instanceof AnyType)  && !type1.toString().contains(type2.toString())) {
+                if (!(type1.toString().contains(AnyType.INSTANCE.name())) &&
+                    !(type2 instanceof AnyType)  &&
+                    !type1.toString().contains(type2.toString())) {
                     r.error("Wrong iterator type in foreach statement, iterable of type : " + type1 + " and iterator of type : " + type2, node.var_decl.type);
                 }
             });
     }
+
+
 
     // ---------------------------------------------------------------------------------------------
 

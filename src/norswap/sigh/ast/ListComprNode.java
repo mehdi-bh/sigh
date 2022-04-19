@@ -1,18 +1,16 @@
 package norswap.sigh.ast;
 
 import norswap.autumn.positions.Span;
-import norswap.sigh.types.FloatType;
-import norswap.sigh.types.IntType;
 import norswap.sigh.types.StringType;
 import norswap.utils.Util;
 
-public final class ForEachNode extends StatementNode
+public final class ListComprNode extends StatementNode
 {
     public final VarDeclarationNode var_decl;
     public final ReferenceNode iterable;
-    public final StatementNode body;
+    public final ExpressionNode body;
 
-    public ForEachNode (Span span, Object field_decl, Object iterable, Object body) {
+    public ListComprNode (Span span, Object body, Object field_decl, Object iterable ) {
         super(span);
         FieldDeclarationNode field = Util.cast(field_decl, FieldDeclarationNode.class);
         String type = field.type.contents();
@@ -25,7 +23,7 @@ public final class ForEachNode extends StatementNode
         }
 
         this.iterable = Util.cast(iterable, ReferenceNode.class);
-        this.body = Util.cast(body, StatementNode.class);
+        this.body = Util.cast(body, ExpressionNode.class);
     }
 
     @Override
