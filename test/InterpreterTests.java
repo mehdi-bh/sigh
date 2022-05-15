@@ -359,6 +359,22 @@ public final class InterpreterTests extends TestFixture {
     // ---------------------------------------------------------------------------------------------
 
     @Test
+    public void testListcomprehension(){
+        rule = grammar.root;
+
+        check("var arr: Float[] = [1,2,3]" +
+            "var lc: Float[] = [x + 100 for var x: Float # arr]" +
+            "print(\"\"+lc[0])" +
+            "print(\"\"+lc[1])" +
+            "print(\"\"+lc[2])",null,"101\n102\n103\n");
+
+        //TODO finish tests
+
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
     public void testFor () {
         check("" +
             "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +

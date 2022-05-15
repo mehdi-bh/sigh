@@ -5,7 +5,13 @@ var lc: Float[] = [x + 100 for var x: Float # arr]
 var lesStrings: String[] = ["a", "b", "c"]
 var strs: String[] = [s + " test" for var s: Any # arr]
 
-fun testListComprStr(a: String[]){
+fun add(a: Float): Float{
+    return a * 5;
+}
+
+var lc2: Float[] = [add(x) for var x: Float # arr]
+
+fun printList(a: Any[]){
     var i: Int = 0
     while i < a.length {
         print("value : "+a[i])
@@ -13,7 +19,15 @@ fun testListComprStr(a: String[]){
     }
 }
 
-fun testListCompr(a: Float[]){
+fun printListStr(a: String[]){
+    var i: Int = 0
+    while i < a.length {
+        print("value : "+a[i])
+        i = i + 1
+    }
+}
+
+fun printListFloat(a: Float[]){
     var i: Int = 0
     while i < a.length {
         print("value : "+a[i])
@@ -21,8 +35,9 @@ fun testListCompr(a: Float[]){
     }
 }
 //testListCompr(arr)
-testListCompr(lc)
-testListComprStr(strs)
+printList(lc)
+printList(strs)
+printList(lc2)
 
 foreach (var i: Float # lc)
 {

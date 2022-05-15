@@ -115,6 +115,26 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
     }
 
     // ---------------------------------------------------------------------------------------------
+    @Test public void testListComprehension(){
+        successInput("var arr: Float[] = [1,2,3,4,5]" +
+            "var lc: Float[] = [x + 100 for var x: Float # arr]");
+
+        successInput("var arr: String[] = [\"a\", \"b\", \"c\"]" +
+            "var lc: String[] = [s + \" test\" for var s: String # arr]");
+
+        successInput("var arr: Float[] = [1,2,3,4,5]" +
+            "var lc: String[] = [s + \" test\" for var s: Any # arr]");
+
+        successInput("fun add(a: Float): Float{return a * 5;}" +
+            "var arr: Float[] = [1,2,3,4,5]" +
+            "var lc2: Float[] = [add(x) for var x: Float # arr]\n");
+
+        //TODO
+//        failureInputWith("var arr: String = [\"a\", \"b\", \"c\"]" +
+//            "var lc: String[] = [s + \" test\" for var s: String # arr]");
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     @Test public void testFor() {
         successInput("for (var i: Int = 0 # i < 5 # i = i + 1) {}");
