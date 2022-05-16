@@ -17,7 +17,7 @@ import static norswap.utils.Util.cast;
 public final class Test
 {
     public static void main (String[] args) {
-                 String file = "randomprogram.si";
+                 String file = "pasok.si";
 //                 String file = "kitchensink.si";
 //        String file = "zae.si";
         String path = Paths.get("examples/", file).toAbsolutePath().toString();

@@ -1,0 +1,15 @@
+var math: Int = 1 + 100
+validate5(math)
+
+fun validate5 (value: Int)
+{
+    print(""+value)
+}
+
+var x: Int = -1
+var tup2 : tuple() = (100,1000)
+var tup1 : tuple() = (1, ("Abo", tup2), (3, "Str"))
+print(""+tup1.0)
+//var tup1 : tuple(tuple()) = (1, 2)
+// var tup1 : (Int, String) = (1, "Oracle")
+

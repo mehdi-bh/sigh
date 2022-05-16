@@ -70,9 +70,11 @@ public final class Interpreter
         visitor.register(ReferenceNode.class,            this::reference);
         visitor.register(ConstructorNode.class,          this::constructor);
         visitor.register(ArrayLiteralNode.class,         this::arrayLiteral);
+        visitor.register(TupleLiteralNode.class,         this::tupleLiteral);
         visitor.register(ParenthesizedNode.class,        this::parenthesized);
         visitor.register(FieldAccessNode.class,          this::fieldAccess);
         visitor.register(ArrayAccessNode.class,          this::arrayAccess);
+        visitor.register(TupleAccessNode.class,          this::tupleAccess);
         visitor.register(FunCallNode.class,              this::funCall);
         visitor.register(UnaryExpressionNode.class,      this::unaryExpression);
         visitor.register(BinaryExpressionNode.class,     this::binaryExpression);
@@ -163,6 +165,14 @@ public final class Interpreter
 
     private Object parenthesized (ParenthesizedNode node) {
         return get(node.expression);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Object[] tupleLiteral (TupleLiteralNode node){
+        Object[] x = map(node.components, new Object[0], visitor);
+        System.out.println(" tuple " + Arrays.toString(x));
+        return x;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -314,6 +324,7 @@ public final class Interpreter
     private int getIndex (ExpressionNode node)
     {
         long index = get(node);
+        System.out.println("ind "+ index);
         if (index < 0)
             throw new ArrayIndexOutOfBoundsException("Negative index: " + index);
         if (index >= Integer.MAX_VALUE - 1)
@@ -338,6 +349,17 @@ public final class Interpreter
         // there is only NOT
         assert node.operator == UnaryOperator.NOT;
         return ! (boolean) get(node.operand);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Object tupleAccess (TupleAccessNode node){
+        Object[] tuple = getNonNullArray(node.tuple);
+        try {
+            return tuple[getIndex(node.index)];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new PassthroughException(e);
+        }
     }
 
     // ---------------------------------------------------------------------------------------------

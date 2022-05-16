@@ -1,0 +1,23 @@
+var tup1 : (Int, String) = (1, "Oracle")
+var tup2 : (Int, String, Float) = (1, "Oracle", 3.0)
+var tup3 : (Int, (String, Float), Bool) = (1, ("Oracle", 3.0), true)
+
+print(tup1.0) // 1
+print(tup2.2) // 3.0
+print(tup3.1.0) // "Oracle"
+print(tup3.2.0) // true
+print(tup3) // (1, ("Oracle", 3.0), true)
+fun abcd (a: (Int, String)): (Int, String)
+{
+    var tup : (Int, String) = (1 + a.0, "Marto")
+    return tup
+}
+
+var efgh: (Int, String) = abcd(tup1)
+print(efgh) // (2, "Marto")
+
+fun ijkl (a: (Int, String)): ((Int, String), (Int, String))
+{
+    return (a, a)
+}
+print(ijkl(tup1)) // ((1, "Oracle"), (1, "Oracle"))
