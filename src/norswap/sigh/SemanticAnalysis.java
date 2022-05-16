@@ -138,6 +138,7 @@ public final class SemanticAnalysis
         walker.register(ParameterDefaultNode.class,     PRE_VISIT,  analysis::parameterDefault);
         walker.register(FunDeclarationNode.class,       PRE_VISIT,  analysis::funDecl);
         walker.register(StructDeclarationNode.class,    PRE_VISIT,  analysis::structDecl);
+        walker.register(CaseNode.class,                 PRE_VISIT,  caseNode -> {});
 
         walker.register(RootNode.class,                 POST_VISIT, analysis::popScope);
         walker.register(BlockNode.class,                POST_VISIT, analysis::popScope);
@@ -146,6 +147,7 @@ public final class SemanticAnalysis
         // statements
         walker.register(ExpressionStatementNode.class,  PRE_VISIT,  node -> {});
         walker.register(IfNode.class,                   PRE_VISIT,  analysis::ifStmt);
+        walker.register(SwitchNode.class,               PRE_VISIT,  analysis::switchStmt);
         walker.register(WhileNode.class,                PRE_VISIT,  analysis::whileStmt);
         walker.register(ForNode.class,                  PRE_VISIT,  analysis::forStmt);
         walker.register(ForEachNode.class,              PRE_VISIT,  analysis::forEachStmt);
@@ -973,6 +975,32 @@ public final class SemanticAnalysis
         R.rule(node, "returns")
         .using(deps)
         .by(r -> r.set(0, deps.length == 2 && Arrays.stream(deps).allMatch(r::get)));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private void switchStmt (SwitchNode node) {
+        int n = node.body.size();
+        scope = new Scope(node, scope);
+        R.set(node, "scope", scope);
+
+        Attribute[] dependencies = new Attribute[n + 1];
+        dependencies[0] = new Attribute(node.item, "type");
+        forEachIndexed(node.body, (i, elemI) ->
+            dependencies[i + 1] = elemI.pattern.attr("type"));
+
+        R.rule()
+            .using(dependencies)
+            .by (r -> {
+                Type ref = r.get(0);
+
+
+                for (int i = 0; i < n; i++){
+                    if (!isComparableTo(r.get(i + 1),ref)) {
+                        r.error(format("%s item and %s pattern not comparable", ref.name(), r.get(i + 1).toString()), node);
+                    }
+                }
+            });
     }
 
     // ---------------------------------------------------------------------------------------------

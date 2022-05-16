@@ -82,6 +82,71 @@ public class GrammarTests extends AutumnTestFixture {
     // ---------------------------------------------------------------------------------------------
 
     @Test
+    public void testSwitch () {
+        rule = grammar.statement;
+
+        successExpect("switch (0) {" +
+                "case (0) {}" +
+                "case (1) {}" +
+                "case (default) {}" +
+                "}",
+            new SwitchNode(null,
+                intlit(0),
+                asList(
+                    new CaseNode(null, intlit(0), new BlockNode(null, asList())),
+                    new CaseNode(null, intlit(1), new BlockNode(null, asList()))),
+                new BlockNode(null, asList())));
+
+        successExpect("switch (\"Blue\") {" +
+                "case (\"Blue\") {}" +
+                "case (\"Red\") {}" +
+                "case (default) {}" +
+                "}",
+            new SwitchNode(null,
+                stringlit("Blue"),
+                asList(
+                    new CaseNode(null, stringlit("Blue"), new BlockNode(null, asList())),
+                    new CaseNode(null, stringlit("Red"), new BlockNode(null, asList()))),
+                new BlockNode(null, asList())));
+
+        successExpect("switch (\"Green\") {" +
+                "case (\"Blue\") {}" +
+                "case (\"Red\") {}" +
+                "case (default) {}" +
+                "}",
+            new SwitchNode(null,
+                stringlit("Green"),
+                asList(
+                    new CaseNode(null, stringlit("Blue"), new BlockNode(null, asList())),
+                    new CaseNode(null, stringlit("Red"), new BlockNode(null, asList()))),
+                new BlockNode(null, asList())));
+
+        successExpect("switch (0.5) {" +
+                "case (0.1) {}" +
+                "case (0.5) {}" +
+                "case (default) {}" +
+                "}",
+            new SwitchNode(null,
+                floatlit(0.5),
+                asList(
+                    new CaseNode(null, floatlit(0.1), new BlockNode(null, asList())),
+                    new CaseNode(null, floatlit(0.5), new BlockNode(null, asList()))),
+                new BlockNode(null, asList())));
+
+        successExpect("switch (0.5) {" +
+                "case (0.1) {}" +
+                "case (default) {}" +
+                "}",
+            new SwitchNode(null,
+                floatlit(0.5),
+                asList(
+                    new CaseNode(null, floatlit(0.1), new BlockNode(null, asList()))),
+                new BlockNode(null, asList())));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
     public void testAny () {
         rule = grammar.statement;
 

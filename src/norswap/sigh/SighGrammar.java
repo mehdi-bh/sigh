@@ -58,9 +58,12 @@ public class SighGrammar extends Grammar
     public rule _struct         = reserved("struct");
     public rule _if             = reserved("if");
     public rule _else           = reserved("else");
+    public rule _switch         = reserved("switch");
+    public rule _case           = reserved("case");
+    public rule _default        = reserved("default");
     public rule _while          = reserved("while");
     public rule _for            = reserved("for");
-    public rule _foreach            = reserved("foreach");
+    public rule _foreach        = reserved("foreach");
     public rule _return         = reserved("return");
 
     public rule number =
@@ -219,6 +222,7 @@ public class SighGrammar extends Grammar
         this.fun_decl,
         this.struct_decl,
         this.if_stmt,
+        this.switch_stmt,
         this.while_stmt,
         this.for_stmt,
         this.foreach_stmt,
@@ -252,7 +256,6 @@ public class SighGrammar extends Grammar
         parameterDefault.sep(0, COMMA)
         .as_list(ParameterNode.class);
 
-
     public rule maybe_return_type =
         seq(COLON, type).or_push_null();
 
@@ -274,6 +277,18 @@ public class SighGrammar extends Grammar
     public rule if_stmt =
         seq(_if, expression, statement, seq(_else, statement).or_push_null())
         .push($ -> new IfNode($.span(), $.$[0], $.$[1], $.$[2]));
+
+    public rule case_item =
+        seq(_case, LPAREN, expression, RPAREN, block)
+            .push($ -> new CaseNode($.span(), $.$[0], $.$[1]));
+
+    public rule case_default =
+        seq(_case, LPAREN, _default, RPAREN, block)
+            .push($ -> $.$[0]);
+
+    public rule switch_stmt =
+        seq(_switch, LPAREN, expression, RPAREN, LBRACE, case_item.at_least(1).as_list(CaseNode.class), case_default, RBRACE)
+            .push($ -> new SwitchNode($.span(), $.$[0], $.$[1], $.$[2]));
 
     public rule while_stmt =
         seq(_while, expression, statement)

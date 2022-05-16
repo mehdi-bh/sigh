@@ -136,6 +136,59 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
     // ---------------------------------------------------------------------------------------------
 
+    @Test public void testSwitch() {
+        successInput("var color : Int = 3" +
+            "switch (color) {" +
+                "case (0) {}" +
+                "case (1) {}" +
+                "case (default) {}" +
+            "}");
+        successInput("" +
+            "switch (0) {" +
+                "case (0) {}" +
+                "case (3) {}" +
+                "case (default) {}" +
+            "}");
+        successInput("var color : String = \"Blue\"" +
+            "switch (color) {" +
+                "case (\"Blue\") {}" +
+                "case (\"Red\") {}" +
+                "case (default) {}" +
+            "}");
+        successInput("var color : String = \"Blue\"" +
+            "switch (color) {" +
+                "case (\"Blue\") {}" +
+                "case (\"Red\") {}" +
+                "case (default) {}" +
+            "}");
+        successInput("var color : Float = 2.0" +
+            "switch (color) {" +
+            "case (1) {}" +
+            "case (2) {}" +
+            "case (default) {}" +
+            "}");
+        successInput("var color : Int = 2" +
+            "switch (color) {" +
+            "case (1.0) {}" +
+            "case (2.0) {}" +
+            "case (default) {}" +
+            "}");
+        failureInput("var color : String = \"Blue\"" +
+            "switch (color) {" +
+            "case (1) {}" +
+            "case (2) {}" +
+            "case (default) {}" +
+            "}");
+        failureInput("var color : Int = 2" +
+            "switch (color) {" +
+            "case (\"Blue\") {}" +
+            "case (2) {}" +
+            "case (default) {}" +
+            "}");
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     @Test public void testFor() {
         successInput("for (var i: Int = 0 # i < 5 # i = i + 1) {}");
         successInput("for (var i: Float = 0 # i < 5.2 # i = i + 1.5) {}");

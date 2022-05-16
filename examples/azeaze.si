@@ -1,8 +1,13 @@
-for (var i: Int = 0 # i < 5 # i = i + 1) {}
-
-// var arr1: String[] = ["true","false","true"]
-// var arr2: Int[] = [1,2,3]
-
-// foreach (var i: Int # arr2) {
-//     print("" + i)
-// }
+var color : Int = 3
+switch (color)
+{
+    case (1) {
+        print("Match was blue !")
+    }
+    case (2) {
+        print("Match was red !")
+    }
+    case (default) {
+        print("No match")
+    }
+}

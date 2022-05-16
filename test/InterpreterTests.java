@@ -359,6 +359,48 @@ public final class InterpreterTests extends TestFixture {
     // ---------------------------------------------------------------------------------------------
 
     @Test
+    public void testSwitch () {
+        check("var color : Int = 3" +
+            "switch (color) {" +
+                "case (0) {}" +
+                "case (1) {}" +
+                "case (default) {print(\"No match\")}" +
+            "}", null, "No match\n");
+        check("var color : Int = 0" +
+            "switch (color) {" +
+                "case (0) {print(\"Wow 0\")}" +
+                "case (1) {}" +
+                "case (default) {}" +
+            "}", null, "Wow 0\n");
+        check("var color : String = \"Blue\"" +
+            "switch (color) {" +
+                "case (\"Blue\") {print(\"Wow blue\")}" +
+                "case (\"Red\") {}" +
+                "case (default) {}" +
+            "}", null, "Wow blue\n");
+        check("var color : String = \"Green\"" +
+            "switch (color) {" +
+            "case (\"Blue\") {print(\"Wow blue\")}" +
+            "case (\"Red\") {}" +
+            "case (default) {print(\"Oh green\")}" +
+            "}", null, "Oh green\n");
+        check("var color : String = \"Green\"" +
+            "switch (color) {" +
+            "case (\"Blue\") {print(\"Wow blue\")}" +
+            "case (\"Red\") {}" +
+            "case (default) {print(\"Oh green\")}" +
+            "}", null, "Oh green\n");
+        check("var color : Float = 2.0" +
+            "switch (color) {" +
+            "case (2.0) {print(\"Wow 2\")}" +
+            "case (1.0) {}" +
+            "case (default) {print(\"Oh green\")}" +
+            "}", null, "Wow 2\n");
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
     public void testListcomprehension(){
         rule = grammar.root;
 
