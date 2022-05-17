@@ -31,6 +31,8 @@ public final class RootScope extends Scope
     public final SyntheticDeclarationNode Type   = decl("Type",   TYPE);
     public final SyntheticDeclarationNode Any    = decl("Any",    TYPE);
 
+//    public final SyntheticDeclarationNode Tuple  = decl("")
+
     // root scope variables
     public final SyntheticDeclarationNode _true  = decl("true",  VARIABLE);
     public final SyntheticDeclarationNode _false = decl("false", VARIABLE);

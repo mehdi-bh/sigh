@@ -69,6 +69,20 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
                 "return add(\"10\",20,\"---\")" +
                 "return add(\"xxx\",20,\"---\", 30)");
 
+        successInput(
+            "fun duplicates(t: ()) : () {" +
+                "return (t,t)" +
+                "}");
+
+        successInput(
+            "fun addCoordinates(t: ()) : Int {" +
+                "return t[0] + t[1]" +
+            "}");
+
+        successInput(
+            "fun addCoordinates(t: () = (1,2) ) : Int {" +
+                "return t[0] + t[1]" +
+            "}");
 
         // |=================================| WRONG DEFAULT ARGS ASSIGNATION |===================================|
         failureInput(
@@ -128,6 +142,14 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
         successInput("fun add(a: Float): Float{return a * 5;}" +
             "var arr: Float[] = [1,2,3,4,5]" +
             "var lc2: Float[] = [add(x) for var x: Float # arr]\n");
+
+        successInput("var arr: () = (1,2,3,4,5)" +
+            "var lc: String[] = [s + \" test\" for var s: Any # arr]");
+
+        successInput("fun add(a: Any): Float{return a + 5.23;}" +
+            "var arr: () = (1,2,3,4,5)" +
+            "var lc2: Float[] = [add(x) for var x: Any # arr]\n");
+
 
         //TODO
 //        failureInputWith("var arr: String = [\"a\", \"b\", \"c\"]" +
@@ -235,6 +257,43 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
             "foreach (var i: Int # arr) {" +
             "print(\"\" + i )" +
             "}");
+
+        successInput("" +
+            "var arr: () = (1,2,3)" +
+            "foreach (var i: Any # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        successInput("" +
+            "var arr: () = (\"1\",2,3.54, (1,2) )" +
+            "foreach (var i: Any # arr) {" +
+                "print(\"\" + i )" +
+            "}");
+        successInput("" +
+            "var arr: () = ( (1,2), (3,4,5) , (6,7,8,9))" +
+            "foreach (var i: Any # arr) {" +
+                "foreach (var x: Any # i) {" +
+                    "print(\"\" + i )" +
+                "}" +
+            "}");
+
+        //Todo make work when all items in tuples of same type ?
+        failureInput("" +
+            "var arr: () = (1,2,3)" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        failureInput("" +
+            "var arr: () = (\"1\",2,3.54)" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+        failureInput("" +
+            "var arr: () = (\"1\",2,3.54)" +
+            "foreach (var i: String # arr) {" +
+            "print(\"\" + i )" +
+            "}");
+
+
         failureInput("" +
             "var arr: Int[] = [1,2,3]" +
             "foreach (var i: String # arr) {" +
@@ -305,6 +364,12 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
         successInput("return \"hello\"");
         successInput("return (42)");
         successInput("return [1, 2, 3]");
+
+        successInput("return (1, 2, 3)");
+        successInput("return (1, 2, [1,2,3])");
+        successInput("return (1.50, (1,2), 3)");
+        successInput("return ((1,\"a\"), (1,2), (\"x\",\"d\"))");
+
         successInput("return true");
         successInput("return false");
         successInput("return null");
@@ -348,10 +413,16 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
         successInput("return 2.0 % 3");
         successInput("return 3.0 % 2");
 
+        successInput("return (1,2)[0] + 5");
+        successInput("return 5 + (1,2)[0]");
+
         failureInputWith("return 2 + true", "Trying to add Int with Bool");
         failureInputWith("return true + 2", "Trying to add Bool with Int");
         failureInputWith("return 2 + [1]", "Trying to add Int with Int[]");
         failureInputWith("return [1] + 2", "Trying to add Int[] with Int");
+
+        failureInputWith("return (1,2) + 3", "Trying to add () with Int");
+        failureInputWith("return 3 + (1,2)", "Trying to add Int with ()");
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -402,6 +473,8 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
         successInput("return \"hi\" != \"hi\"");
         successInput("return [1] != [1]");
+
+        successInput("return (1,2) != (1, (1,\"a\"), 2)");
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -419,6 +492,10 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
         // implicit conversions
         successInput("var x: Float = 1 ; x = 2");
+
+        successInput("var t: () = (1,2); return t");
+        successInput("var t: () = (1,2, (9,10)); return t");
+        successInput("var t: () = (1,2, (9,\"10\")); return t[2]");
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -451,6 +528,11 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
             "struct Point { var x: Int; var y: Int }" +
             "return $Point(1, 2)");
 
+        successInput(
+            "fun sum (a: ()): Int { return a[0] + a[1] } " +
+                "return sum( (4, 7) )");
+
+
         successInput("var str: String = null; return print(str + 1)");
 
         failureInputWith("return print(1)", "argument 0: expected String but got Int");
@@ -477,6 +559,20 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
         successInput("var x: Int[] = [0, 1]; x[0] = 3; return x[0]");
         successInput("var x: Int[] = []; x[0] = 3; return x[0]");
         successInput("var x: Int[] = null; x[0] = 3");
+
+        successInput("return (1, 2)[1]");
+        successInput("return (1, 2, (1,2))[2]");
+        successInput("return (1, 2, (1,2))[2][0]");
+
+        failureInputWith("return (1,2)[true]", "Indexing an array using a non-Int-valued expression");
+
+        successInput("var t: () = null; return t[0]");
+        successInput("var t: () = null; return t");
+        successInput("var x: () = (0, (1,2, (2,3)) ); return x[1][2]");
+
+        successInput("var x: () = (0, 1); x[0] = 3; return x[0]");
+        successInput("var x: () = null; x[0] = 3; return x[0]");
+
 
         successInput(
             "struct P { var x: Int; var y: Int }" +

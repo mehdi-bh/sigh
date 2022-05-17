@@ -1,12 +1,16 @@
 package norswap.sigh.interpreter;
 
 import norswap.sigh.ast.*;
+import norswap.sigh.errors.ImutableModificationException;
+import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
 import norswap.sigh.scopes.Scope;
 import norswap.sigh.scopes.SyntheticDeclarationNode;
 import norswap.sigh.types.FloatType;
+import norswap.sigh.types.IntType;
 import norswap.sigh.types.StringType;
+import norswap.sigh.types.TupleType;
 import norswap.sigh.types.Type;
 import norswap.uranium.Reactor;
 import norswap.utils.Util;
@@ -70,9 +74,11 @@ public final class Interpreter
         visitor.register(ReferenceNode.class,            this::reference);
         visitor.register(ConstructorNode.class,          this::constructor);
         visitor.register(ArrayLiteralNode.class,         this::arrayLiteral);
+        visitor.register(TupleLiteralNode.class,         this::tupleLiteral);
         visitor.register(ParenthesizedNode.class,        this::parenthesized);
         visitor.register(FieldAccessNode.class,          this::fieldAccess);
         visitor.register(ArrayAccessNode.class,          this::arrayAccess);
+        visitor.register(TupleAccessNode.class,          this::tupleAccess);
         visitor.register(FunCallNode.class,              this::funCall);
         visitor.register(UnaryExpressionNode.class,      this::unaryExpression);
         visitor.register(BinaryExpressionNode.class,     this::binaryExpression);
@@ -164,6 +170,13 @@ public final class Interpreter
 
     private Object parenthesized (ParenthesizedNode node) {
         return get(node.expression);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Object[] tupleLiteral (TupleLiteralNode node){
+        Object[] x = map(node.components, new Object[0], visitor);
+        return x;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -286,6 +299,14 @@ public final class Interpreter
 
         if (node.left instanceof ArrayAccessNode) {
             ArrayAccessNode arrayAccess = (ArrayAccessNode) node.left;
+            Type type = reactor.get(node, "type");
+
+
+            if (arrayAccess.array instanceof ReferenceNode)
+                if(reactor.get(arrayAccess.array, "type") instanceof TupleType)
+                    throw new ImutableModificationException(arrayAccess);
+
+
             Object[] array = getNonNullArray(arrayAccess.array);
             int index = getIndex(arrayAccess.index);
             try {
@@ -339,6 +360,17 @@ public final class Interpreter
         // there is only NOT
         assert node.operator == UnaryOperator.NOT;
         return ! (boolean) get(node.operand);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    private Object tupleAccess (TupleAccessNode node){
+        Object[] tuple = getNonNullArray(node.tuple);
+        try {
+            return tuple[getIndex(node.index)];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new PassthroughException(e);
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -632,10 +664,12 @@ public final class Interpreter
 
     private void assign (Scope scope, String name, Object value, Type targetType)
     {
-
         // TODO : Encore des trucs douteux par ici avec les forloops
         if (targetType != null && targetType.isPrimitive() && value instanceof String)
             throw new Error("Cannot assign a String into a primitive type");
+
+        if(value instanceof Double && targetType instanceof IntType)
+            throw new Error("Cannot assign a Float into an Int");
 
         if (value instanceof Long && targetType instanceof FloatType)
             value = ((Long) value).doubleValue();

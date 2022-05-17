@@ -4,6 +4,7 @@ import norswap.sigh.ast.*;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static java.util.Arrays.asList;
 import static norswap.sigh.ast.BinaryOperator.*;
@@ -31,6 +32,7 @@ public class GrammarTests extends AutumnTestFixture {
     private static SimpleTypeNode simpleType (String name){ return new SimpleTypeNode(null,name);}
 
     private static ParameterDefaultNode param(String name, String type, ExpressionNode lit){ return new ParameterDefaultNode(null,name, simpleType(type),lit);}
+
 
     @Test
     public void testParameterDefault () {
@@ -197,6 +199,14 @@ public class GrammarTests extends AutumnTestFixture {
         successExpect("\"hello\"", new StringLiteralNode(null, "hello"));
         successExpect("(42)", new ParenthesizedNode(null, intlit(42)));
         successExpect("[1, 2, 3]", new ArrayLiteralNode(null, asList(intlit(1), intlit(2), intlit(3))));
+
+        successExpect("(1, 2, 3)", new TupleLiteralNode(null, asList(intlit(1), intlit(2), intlit(3))));
+        successExpect("(1, 2, [1,2,3])", new TupleLiteralNode(null, asList(intlit(1), intlit(2),
+                                                    new ArrayLiteralNode(null, asList(intlit(1), intlit(2), intlit(3))))));
+        successExpect("(1, (2,\"str\"), (3, 5.55))", new TupleLiteralNode(null, asList(intlit(1),
+                                                            new TupleLiteralNode(null, asList(intlit(2),stringlit("str"))),
+                                                            new TupleLiteralNode(null,asList(intlit(3),floatlit(5.55))))));
+
         successExpect("true", new ReferenceNode(null, "true"));
         successExpect("false", new ReferenceNode(null, "false"));
         successExpect("null", new ReferenceNode(null, "null"));
@@ -249,6 +259,23 @@ public class GrammarTests extends AutumnTestFixture {
         successExpect("[1].length", new FieldAccessNode(null,
             new ArrayLiteralNode(null, asList(intlit(1))), "length"));
         successExpect("p.x", new FieldAccessNode(null, new ReferenceNode(null, "p"), "x"));
+
+
+        //todo tuple.length
+
+        successExpect("(1,2)[1]", new ArrayAccessNode(null,
+            new TupleLiteralNode(null,asList(intlit(1),intlit(2))),
+            intlit(1)));
+
+        successExpect("(1, (2,\"str\"), (3, 5.55))[1][1]", new ArrayAccessNode(null,
+            new ArrayAccessNode(null,
+                new TupleLiteralNode(null, asList(intlit(1),
+                    new TupleLiteralNode(null, asList(intlit(2),stringlit("str"))),
+                    new TupleLiteralNode(null,asList(intlit(3),floatlit(5.55))))
+                ),
+                intlit(1)),
+            intlit(1)));
+
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -258,6 +285,21 @@ public class GrammarTests extends AutumnTestFixture {
 
         successExpect("var x: Int = 1", new VarDeclarationNode(null,
             "x", new SimpleTypeNode(null, "Int"), intlit(1)));
+
+        successExpect("var t: () = ()", new VarDeclarationNode(null,
+            "t", new TupleTypeNode(null), new TupleLiteralNode(null, Collections.emptyList())));
+
+        successExpect("var t: () = (1,2)", new VarDeclarationNode(null,
+            "t", new TupleTypeNode(null), new TupleLiteralNode(null,asList(intlit(1),intlit(2)))));
+
+        successExpect("var t: () = ( (1,2), 2, (\"a\", -2.1) )", new VarDeclarationNode(null,
+            "t", new TupleTypeNode(null),
+                        new TupleLiteralNode(null,asList(
+                            new TupleLiteralNode(null, asList(intlit(1),intlit(2))),
+                            intlit(2),
+                            new TupleLiteralNode(null, asList(stringlit("a"),floatlit(-2.1)))
+                        ))));
+
 
         successExpect("struct P {}", new StructDeclarationNode(null, "P", asList()));
 

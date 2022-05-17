@@ -2,6 +2,8 @@ package norswap.sigh;
 
 import norswap.autumn.Grammar;
 import norswap.sigh.ast.*;
+import norswap.sigh.types.AnyType;
+import norswap.sigh.types.TupleType;
 
 import static norswap.sigh.ast.UnaryOperator.NOT;
 
@@ -53,6 +55,8 @@ public class SighGrammar extends Grammar
     public rule COMMA           = word(",");
     public rule DIESE           = word("#");
 
+
+    public rule _tuple          = reserved("tuple");
     public rule _var            = reserved("var");
     public rule _fun            = reserved("fun");
     public rule _struct         = reserved("struct");
@@ -122,6 +126,10 @@ public class SighGrammar extends Grammar
         seq(LSQUARE, expressions, RSQUARE)
         .push($ -> new ArrayLiteralNode($.span(), $.$[0]));
 
+    public rule tuple =
+        seq(LPAREN, expressions, RPAREN)
+        .push($ -> new TupleLiteralNode($.span(), $.$[0]));
+
     public rule basic_expression = choice(
         constructor,
         reference,
@@ -129,7 +137,9 @@ public class SighGrammar extends Grammar
         integer,
         string,
         paren_expression,
-        array);
+        array,
+        tuple
+    );
 
     public rule function_args =
         seq(LPAREN, expressions, RPAREN);
@@ -142,6 +152,9 @@ public class SighGrammar extends Grammar
             $ -> new ArrayAccessNode($.span(), $.$[0], $.$[1]))
         .suffix(function_args,
             $ -> new FunCallNode($.span(), $.$[0], $.$[1]));
+//        .suffix(seq(DOT, lazy(() -> this.expression)),
+//            $ -> new TupleAccessNode($.span(), $.$0(), $.$1())
+
 
     public rule prefix_expression = right_expression()
         .operand(suffix_expression)
@@ -212,8 +225,16 @@ public class SighGrammar extends Grammar
         .suffix(seq(LSQUARE, RSQUARE),
             $ -> new ArrayTypeNode($.span(), $.$[0]));
 
+    public rule tuple_type =
+        seq(LPAREN,RPAREN)
+            .push($ -> new TupleTypeNode($.span()));
+//        left_expression()
+//        .left(_tuple)
+//        .suffix(seq(LPAREN,RPAREN),
+//            $ -> new TupleTypeNode($.span(), null));
+
     public rule type =
-        seq(array_type);
+        choice(seq(tuple_type),seq(array_type));
 
     public rule  statement = lazy(() -> choice(
         this.block,

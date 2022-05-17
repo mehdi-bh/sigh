@@ -6,6 +6,7 @@ import norswap.autumn.positions.LineMapString;
 import norswap.sigh.SemanticAnalysis;
 import norswap.sigh.SighGrammar;
 import norswap.sigh.ast.SighNode;
+import norswap.sigh.errors.ImutableModificationException;
 import norswap.sigh.interpreter.Interpreter;
 import norswap.sigh.interpreter.Null;
 import norswap.uranium.Reactor;
@@ -131,6 +132,11 @@ public final class InterpreterTests extends TestFixture {
         checkExpr("\"hello\"", "hello");
         checkExpr("(42)", 42L);
         checkExpr("[1, 2, 3]", new Object[]{1L, 2L, 3L});
+
+        checkExpr("(1, 2, 3)", new Object[]{1L, 2L, 3L});
+        checkExpr("(1, 2, (1,2))", new Object[]{1L, 2L, new Object[]{1L,2L} });
+        checkExpr("(1.55, 2, (1,\"s\"))", new Object[]{1.55D, 2L, new Object[]{1L,"s"} });
+
         checkExpr("true", true);
         checkExpr("false", false);
         checkExpr("null", Null.INSTANCE);
@@ -176,6 +182,11 @@ public final class InterpreterTests extends TestFixture {
         checkExpr("3.0 % 2", 1.0d);
 
         checkExpr("2 * (4-1) * 4.0 / 6 % (2+1)", 1.0d);
+
+        checkExpr("(10,20)[0] + 15", 25L);
+        checkExpr("15 + (10,20)[0]", 25L);
+        checkExpr("(10,(20.50,30))[1][0] + 15", 35.50D);
+        checkExpr("15 +(10,(20.50,30))[1][0]  ", 35.50D);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -217,6 +228,9 @@ public final class InterpreterTests extends TestFixture {
         checkExpr("\"hi\" != \"hi2\"", true);
         checkExpr("[1] != [1]", true);
 
+        checkExpr(" (1,2) != (1,2)", true);
+        checkExpr(" (1,2)[0] == (1,2)[0]", true);
+
          // test short circuit
         checkExpr("true || print(\"x\") == \"y\"", true, "");
         checkExpr("false && print(\"x\") == \"y\"", false, "");
@@ -226,11 +240,18 @@ public final class InterpreterTests extends TestFixture {
 
     @Test
     public void testVarDecl () {
+        rule = grammar.root;
+
         check("var x: Int = 1; return x", 1L);
         check("var x: Float = 2.0; return x", 2d);
 
         check("var x: Int = 0; return x = 3", 3L);
         check("var x: String = \"0\"; return x = \"S\"", "S");
+
+        check("var t: () = (1,2); return t", new Object[]{1L,2L});
+        check("var t: () = ((1,2) , (\"a\",\"b\")); return t", new Object[]{new Object[]{1L,2L},new Object[]{"a","b"}});
+
+        check("var t: () = (1,2); return t = (4,5,7)", new Object[]{4L,5L, 7L});
 
         // implicit conversions
         check("var x: Float = 1; x = 2; return x", 2.0d);
@@ -262,6 +283,8 @@ public final class InterpreterTests extends TestFixture {
 
     @Test
     public void testCalls () {
+        rule = grammar.root;
+
         check(
             "fun add (a: Int, b: Int): Int { return a + b } " +
                 "return add(4, 7)",
@@ -269,8 +292,8 @@ public final class InterpreterTests extends TestFixture {
 
         check(
             "fun add (a: Int = 4 , b: Int = 7): Int { return a + b } " +
-                "return add()",
-            11L);
+                "return add() + add(3,3)",
+            17L);
 
         check(
             "fun add (a: Int = 4 , b: Int = 7): Int { return a + b } " +
@@ -282,6 +305,47 @@ public final class InterpreterTests extends TestFixture {
                 "return add(\"Number \", 1)",
             "Number 1 marto");
 
+
+        check(
+            "fun addToCoordinates(t: (), x: Any) : () {" +
+                "return (t[0] + x, t[1] + x)" +
+                "}" +
+                "return addToCoordinates( (1,2) , \"10\" )",
+            new Object[]{
+                "110","210"
+            });
+
+        check(
+            "fun addToCoordinates(t: (), x: Int) : () {" +
+                "return (t[0] + x, t[1] + x)" +
+                "}" +
+                "return addToCoordinates( (1,2) , 10 )",
+            new Object[]{
+                11L,12L
+            });
+
+        check(
+            "fun duplicate(t: ()) : () {" +
+                "return (t,t)" +
+                "}" +
+                "return duplicate( (1,2) )",
+            new Object[]{
+                new Object[]{1L,2L},
+                new Object[]{1L,2L}
+            });
+
+        check(
+            "fun sumCoordinates(t: ()) : Int {" +
+                "return t[0] + t[1]" +
+                "}" +
+                "return sumCoordinates( (3, -7) )",
+            -4L);
+
+        check(
+            "fun sumCoordinates(t: () = (1,2) ) : () {" +
+                "return t[0] + t[1]" +
+                "}" +
+                "return sumCoordinates()",3L);
 
         HashMap<String, Object> point = new HashMap<>();
         point.put("x", 1L);
@@ -318,6 +382,30 @@ public final class InterpreterTests extends TestFixture {
             ArrayIndexOutOfBoundsException.class);
         checkThrows("var x: Int[] = null; x[0] = 3",
             NullPointerException.class);
+
+        checkExpr("(1,2)[0]", 1L);
+        checkExpr("(1.0,\"s\")[0]", 1d);
+        checkExpr("(1.0,\"s\")[1]", "s");
+        checkExpr("(1, 2, (1.0,\"s\"))[2][1]", "s");
+        checkExpr("(1, 2, (1.0,\"s\", (1,2) ))[2][2][1]", 2L);
+
+        checkExpr("(1,[1,2])[1]", new Object[]{1L,2L});
+
+        //TODO make it works ?
+        //        checkExpr("(1,2).length", 2L);
+
+        check("var t: () = (1,[1,2]); t[1][0] = 10; return t[1] ", new Object[]{10L,2L});
+
+        checkThrows("var t: () = null; return t[0]", NullPointerException.class);
+        checkThrows("var x: () = (0, 1); x[0] = 3;", ImutableModificationException.class);
+        checkThrows("var t: () = (1,[1,2]); t[1] = [100,100];  ", ImutableModificationException.class);
+
+//        checkThrows("var x: () = (0,1); return x[5]",ArrayIndexOutOfBoundsException.class);
+        checkThrows("var x: () = null; x[0] = 3",
+            ImutableModificationException.class);
+
+
+
 
         check(
             "struct P { var x: Int; var y: Int }" +
@@ -461,6 +549,8 @@ public final class InterpreterTests extends TestFixture {
 
     @Test
     public void testForEach () {
+        rule = grammar.root;
+
         check("" +
             "var arr: String[] = [\"a\",\"z\",\"e\"]\n" +
             "foreach (var i: String # arr) {" +
@@ -509,6 +599,45 @@ public final class InterpreterTests extends TestFixture {
             ,
             null,
             "1.0\n2.0\n3.0\n");
+
+        check("" +
+            "var arr: () = (1,2,3)" +
+            "foreach (var i: Any # arr) {" +
+            "print(\"\" + i )" +
+            "}", null,"1\n2\n3\n");
+
+        check("" +
+            "var arr: () = (\"1\",2,3.54, (1,2) )" +
+            "foreach (var i: Any # arr) {" +
+            "print(\"\" + i )" +
+            "}", null,
+            "1\n2\n3.54\n[1, 2]\n");
+        check("" +
+            "var arr: () = ( (1,2), (3,4,5) , (6,7,8,9))" +
+            "foreach (var i: Any # arr) {" +
+                "foreach (var x: Any # i) {" +
+                    "print(\"\" + x )" +
+                "}" +
+            "}",null,
+            "1\n2\n3\n4\n5\n6\n7\n8\n9\n");
+
+        checkThrows("" +
+            "var arr: () = (1,2,3)" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}",AssertionError.class);
+        checkThrows("" +
+            "var arr: () = (\"1\",2,3.54)" +
+            "foreach (var i: Int # arr) {" +
+            "print(\"\" + i )" +
+            "}", AssertionError.class);
+        checkThrows("" +
+            "var arr: () = (\"1\",2,3.54)" +
+            "foreach (var i: String # arr) {" +
+            "print(\"\" + i )" +
+            "}", AssertionError.class);
+
+
     }
 
     // ---------------------------------------------------------------------------------------------

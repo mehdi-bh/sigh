@@ -50,8 +50,11 @@ public final class TypeUtils {
             throw new UnsupportedOperationException(); // TODO
         else if (type instanceof StructType)
             return Object.class; // the proper class type is not available at compile time
+        else if (type instanceof TupleType)
+            return Object.class;
         else
-            throw new Error("unreachable");
+            throw new Error("unreachable")
+                ;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -85,6 +88,8 @@ public final class TypeUtils {
             throw new UnsupportedOperationException(); // TODO
         else if (type instanceof StructType)
             return Object[].class; // the proper class type is not available at compile time
+        else if (type instanceof TupleType)
+            return Object[].class;
         else
             throw new Error("unreachable");
     }
