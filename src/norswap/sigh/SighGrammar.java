@@ -147,13 +147,10 @@ public class SighGrammar extends Grammar
             $ -> new FieldAccessNode($.span(), $.$[0], $.$[1]))
         .suffix(seq(LSQUARE, lazy(() -> this.expression), RSQUARE),
             $ -> new ArrayAccessNode($.span(), $.$[0], $.$[1]))
-//        .suffix(seq(LPAREN, lazy(() -> this.expression), RPAREN),
-//            $ -> new TupleAccessNode($.span(), $.$[0], $.$[1]))
         .suffix(function_args,
-            $ -> new FunCallNode($.span(), $.$[0], $.$[1]))
-        .suffix(seq(DOT, lazy(() -> this.expression)),
-            $ -> new TupleAccessNode($.span(), $.$0(), $.$1())
-        );
+            $ -> new FunCallNode($.span(), $.$[0], $.$[1]));
+//        .suffix(seq(DOT, lazy(() -> this.expression)),
+//            $ -> new TupleAccessNode($.span(), $.$0(), $.$1())
 
 
     public rule prefix_expression = right_expression()
@@ -225,18 +222,13 @@ public class SighGrammar extends Grammar
         .suffix(seq(LSQUARE, RSQUARE),
             $ -> new ArrayTypeNode($.span(), $.$[0]));
 
-
-    //tuple( tuple(Int,Int), Int) = ((1,2), 3)
-//    public rule tuple_type = left_expression()
-//        .left(LPAREN)
-//        .operand(simple_type)
-//        .infix(COMMA,
-//            $ -> new TupleTypeNode($.$0(), $.$1()));
-
-    public rule tuple_type = left_expression()
-        .left(_tuple)
-        .suffix(seq(LPAREN,RPAREN),
-            $ -> new TupleTypeNode($.span(), null));
+    public rule tuple_type =
+        seq(LPAREN,RPAREN)
+            .push($ -> new TupleTypeNode($.span()));
+//        left_expression()
+//        .left(_tuple)
+//        .suffix(seq(LPAREN,RPAREN),
+//            $ -> new TupleTypeNode($.span(), null));
 
     public rule type =
         choice(seq(tuple_type),seq(array_type));

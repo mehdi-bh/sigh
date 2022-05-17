@@ -53,7 +53,8 @@ public final class TypeUtils {
         else if (type instanceof TupleType)
             return Object.class;
         else
-            throw new Error("unreachable");
+            throw new Error("unreachable")
+                ;
     }
 
     // ---------------------------------------------------------------------------------------------

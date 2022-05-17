@@ -269,44 +269,8 @@ public final class SemanticAnalysis
         Attribute[] dependencies =
             node.components.stream().map(it -> it.attr("type")).toArray(Attribute[]::new);
 
-        System.out.println(Arrays.toString(dependencies));
+        R.set(node, "type", TupleType.INSTANCE);
 
-        R.set(node, "type", new TupleType(null));
-//        R.set(node, "type", TypeType.INSTANCE);
-//        R.set(node, "declared", new TupleType(node));
-//        R.rule(node, "type")
-//            .using(dependencies)
-//            .by(r -> {
-//                Type[] types = IntStream.range(0, dependencies.length).<Type>mapToObj(r::get)
-//                    .distinct().toArray(Type[]::new);
-//
-//                int i = 0;
-//                Type supertype = null;
-//                for (Type type: types) {
-//                    if (type instanceof VoidType)
-//                        // We report the error, but compute a type for the array from the other elements.
-//                        r.errorFor("Void-valued expression in array literal", node.components.get(i));
-//                    else if (supertype == null)
-//                        supertype = type;
-//                    else {
-//                        supertype = commonSupertype(supertype, type);
-//                        if (supertype == null) {
-//                            r.error("Could not find common supertype in array literal.", node);
-//                            return;
-//                        }
-//                    }
-//                    ++i;
-//                }
-//
-//                System.out.println(supertype);
-//
-//                if (supertype == null)
-//                    r.error(
-//                        "Could not find common supertype in array literal: all members have Void type.",
-//                        node);
-//                else
-//                    r.set(0, new TupleType(null));
-//            });
     }
     // ---------------------------------------------------------------------------------------------
 
@@ -437,8 +401,10 @@ public final class SemanticAnalysis
             .using(node.tuple, "type")
             .by(r -> {
                 Type type = r.get(0);
+                System.out.println("type " + type);
+
                 if (type instanceof TupleType)
-                    r.set(0, new TupleType(null));
+                    r.set(0, TupleType.INSTANCE);
 //                    r.set(0, ((TupleType) type).componentType);
                 else
                     r.error("Trying to index a non-array expression of type " + type, node);
@@ -449,6 +415,9 @@ public final class SemanticAnalysis
 
     private void arrayAccess (ArrayAccessNode node)
     {
+        final Scope scope = this.scope;
+        this.inferenceContext = node;
+
         R.rule()
         .using(node.index, "type")
         .by(r -> {
@@ -458,11 +427,50 @@ public final class SemanticAnalysis
         });
 
         R.rule(node, "type")
-        .using(node.array, "type")
+        .using(node.array.attr("type"))
         .by(r -> {
             Type type = r.get(0);
             if (type instanceof ArrayType)
                 r.set(0, ((ArrayType) type).componentType);
+            else if (type instanceof TupleType) {
+                TupleType tupleType = cast(type);
+
+                int nbDefault = 0;
+
+                if (node.array instanceof ReferenceNode) {
+                    DeclarationContext ctx = scope.lookup(((ReferenceNode) node.array).name);
+                    DeclarationNode decl = ctx == null ? null : ctx.declaration;
+                    if (ctx == null)
+                        r.errorFor("could not resolve: " + ((ReferenceNode) node.array).name, node, node.attr("value"));
+
+                    if(decl instanceof VarDeclarationNode
+                        && ((VarDeclarationNode) decl).initializer instanceof TupleLiteralNode){
+                        if(node.index instanceof IntLiteralNode){
+                            TupleLiteralNode tln = (TupleLiteralNode) ((VarDeclarationNode) decl).initializer;
+                            int ind = (int) ((IntLiteralNode) node.index).value;
+                            Type t;
+                            if(ind < 0 || ind > tln.components.size()) {
+                                r.errorFor("invalid index: " + node, node);
+                                t = AnyType.INSTANCE;
+                            }else
+                                t = R.get(tln.components.get(ind).attr("type"));
+
+                            r.set(0, t);
+                        }
+                    }else{
+                        r.set(0, AnyType.INSTANCE);
+                    }
+
+                }else if(node.array instanceof ArrayAccessNode){
+                    Type t = R.get(node.array,"type");
+                    if(t instanceof TupleType)
+                        r.set(0, t);
+                }else{
+                    r.set(0, AnyType.INSTANCE);
+                }
+            }
+            else if (type instanceof AnyType)
+                r.set(0, AnyType.INSTANCE);
             else
                 r.error("Trying to index a non-array expression of type " + type, node);
         });
@@ -598,8 +606,10 @@ public final class SemanticAnalysis
         if (left instanceof IntType)
             if (right instanceof IntType)
                 r.set(0, IntType.INSTANCE);
-            else if (right instanceof FloatType || right instanceof AnyType)
+            else if (right instanceof FloatType /*|| right instanceof AnyType*/)
                 r.set(0, FloatType.INSTANCE);
+            else if (right instanceof AnyType)
+                r.set(0, AnyType.INSTANCE);
             else
                 r.error(arithmeticError(node, "Int", right), node);
         else if (left instanceof FloatType)
@@ -727,7 +737,7 @@ public final class SemanticAnalysis
 
     private void tupleType (TupleTypeNode node) {
 //        R.rule(node, "value");
-        R.set(node,"value", new TupleType(null));
+        R.set(node,"value", TupleType.INSTANCE);
     }
 
 

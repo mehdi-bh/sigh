@@ -1,15 +1,105 @@
-var math: Int = 1 + 100
-validate5(math)
-
-fun validate5 (value: Int)
+fun abcd (a: ()): ()
 {
-    print(""+value)
+    var x: Int = a[0] + 1
+    print("xxx " + x)
+
+    //var tup : tuple() = (1 + a[0], "Marto")
+    //a[0] = x
+
+    return (a[0]+1 , 10)
 }
 
-var x: Int = -1
-var tup2 : tuple() = (100,1000)
-var tup1 : tuple() = (1, ("Abo", tup2), (3, "Str"))
-print(""+tup1.0)
+
+fun test (tup: () = (1,2,3) ): (){
+    print("le tuple "+tup)
+    return tup
+}
+
+fun add (t1: (), t2: ()): (){
+    return (t1[0] + t2[0], t1[1] + t2[1])
+}
+
+fun sum(tup: (), init: Any): Any{
+    var res: Any = init
+    foreach(var x: Any # tup){
+        res = res + x
+    }
+    return res
+}
+
+fun testAny(t: Any){
+    print(""+t[0])
+}
+
+var tx : () = (1,2)
+testAny(tx)
+
+
+fun iter(t1: ()){
+    var i: Int = 0
+    var tot : Int = 0
+    //var iArr: Int[] = []
+
+    foreach(var a: Any # t1){
+        foreach(var aa: Any # a){
+            print("" + a[i])
+            i = i + 1
+            tot = tot + 1
+        }
+        i = 0
+    }
+}
+
+var x: Int = 1
+var tup2 : () = (100,"test")
+var tup1 : () = (1, (5, tup2), (3, "Str"))
+
+var t:() = null
+print("" + t)
+
+var ttt: () = (1, [1,2,3])
+ttt[1][2] = 10
+print("" + ttt)
+//print(""+ ((100,"test") == (100,"test")))
+
+var tup: () = ( (1,2,3), (4,5), (6,7,8,9) )
+var tupStr : () = ( ("a","b") , ("c","d","e"))
+
+var m: () = tup1[1][1]
+var m2: () = ((10,10), (1,5))
+
+var reduce : Int[] = [sum(t,0) for var t: Any # tup]
+print("" + tup)
+print("" + reduce)
+
+var reduceStr : Int[] = [sum(t, "") for var t: Any # tupStr]
+print("" + tupStr)
+print("" + reduceStr)
+
+
+//print("" + add(m2[0], m2[1]))
+//iter(m2)
+//print("" + m2)
+
+//print(""+ test(tup1[1][1]) )
+
+
+//print(""+abcd(tup1[1]))
+
+
+fun fx(a: Any[]){
+    foreach(var aa: Any # a){
+        print(aa)
+    }
+    print("any "+a)
+}
+var arr: Any[] = [[1,2], [1,2]]
+//fx(arr[0])
+
+//var an: Any = (1,(1,"St",3),5)
+//test(an[1])
+
+//print(""+tup1[1][1][1])
 //var tup1 : tuple(tuple()) = (1, 2)
 // var tup1 : (Int, String) = (1, "Oracle")
 

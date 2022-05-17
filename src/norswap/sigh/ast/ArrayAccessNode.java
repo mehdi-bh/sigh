@@ -5,6 +5,7 @@ import norswap.utils.Util;
 
 public final class ArrayAccessNode extends ExpressionNode
 {
+
     public final ExpressionNode array;
     public final ExpressionNode index;
 

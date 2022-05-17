@@ -1,12 +1,16 @@
 package norswap.sigh.interpreter;
 
 import norswap.sigh.ast.*;
+import norswap.sigh.errors.ImutableModificationException;
+import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
 import norswap.sigh.scopes.Scope;
 import norswap.sigh.scopes.SyntheticDeclarationNode;
 import norswap.sigh.types.FloatType;
+import norswap.sigh.types.IntType;
 import norswap.sigh.types.StringType;
+import norswap.sigh.types.TupleType;
 import norswap.sigh.types.Type;
 import norswap.uranium.Reactor;
 import norswap.utils.Util;
@@ -171,7 +175,6 @@ public final class Interpreter
 
     private Object[] tupleLiteral (TupleLiteralNode node){
         Object[] x = map(node.components, new Object[0], visitor);
-        System.out.println(" tuple " + Arrays.toString(x));
         return x;
     }
 
@@ -295,6 +298,14 @@ public final class Interpreter
 
         if (node.left instanceof ArrayAccessNode) {
             ArrayAccessNode arrayAccess = (ArrayAccessNode) node.left;
+            Type type = reactor.get(node, "type");
+
+
+            if (arrayAccess.array instanceof ReferenceNode)
+                if(reactor.get(arrayAccess.array, "type") instanceof TupleType)
+                    throw new ImutableModificationException(arrayAccess);
+
+
             Object[] array = getNonNullArray(arrayAccess.array);
             int index = getIndex(arrayAccess.index);
             try {
@@ -324,7 +335,6 @@ public final class Interpreter
     private int getIndex (ExpressionNode node)
     {
         long index = get(node);
-        System.out.println("ind "+ index);
         if (index < 0)
             throw new ArrayIndexOutOfBoundsException("Negative index: " + index);
         if (index >= Integer.MAX_VALUE - 1)
@@ -636,10 +646,12 @@ public final class Interpreter
 
     private void assign (Scope scope, String name, Object value, Type targetType)
     {
-
         // TODO : Encore des trucs douteux par ici avec les forloops
         if (targetType != null && targetType.isPrimitive() && value instanceof String)
             throw new Error("Cannot assign a String into a primitive type");
+
+        if(value instanceof Double && targetType instanceof IntType)
+            throw new Error("Cannot assign a Float into an Int");
 
         if (value instanceof Long && targetType instanceof FloatType)
             value = ((Long) value).doubleValue();
