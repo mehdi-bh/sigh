@@ -152,8 +152,6 @@ public class SighGrammar extends Grammar
             $ -> new ArrayAccessNode($.span(), $.$[0], $.$[1]))
         .suffix(function_args,
             $ -> new FunCallNode($.span(), $.$[0], $.$[1]));
-//        .suffix(seq(DOT, lazy(() -> this.expression)),
-//            $ -> new TupleAccessNode($.span(), $.$0(), $.$1())
 
 
     public rule prefix_expression = right_expression()
@@ -228,10 +226,6 @@ public class SighGrammar extends Grammar
     public rule tuple_type =
         seq(LPAREN,RPAREN)
             .push($ -> new TupleTypeNode($.span()));
-//        left_expression()
-//        .left(_tuple)
-//        .suffix(seq(LPAREN,RPAREN),
-//            $ -> new TupleTypeNode($.span(), null));
 
     public rule type =
         choice(seq(tuple_type),seq(array_type));

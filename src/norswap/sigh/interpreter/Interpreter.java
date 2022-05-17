@@ -78,7 +78,6 @@ public final class Interpreter
         visitor.register(ParenthesizedNode.class,        this::parenthesized);
         visitor.register(FieldAccessNode.class,          this::fieldAccess);
         visitor.register(ArrayAccessNode.class,          this::arrayAccess);
-        visitor.register(TupleAccessNode.class,          this::tupleAccess);
         visitor.register(FunCallNode.class,              this::funCall);
         visitor.register(UnaryExpressionNode.class,      this::unaryExpression);
         visitor.register(BinaryExpressionNode.class,     this::binaryExpression);
@@ -364,17 +363,6 @@ public final class Interpreter
 
     // ---------------------------------------------------------------------------------------------
 
-    private Object tupleAccess (TupleAccessNode node){
-        Object[] tuple = getNonNullArray(node.tuple);
-        try {
-            return tuple[getIndex(node.index)];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new PassthroughException(e);
-        }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
     private Object arrayAccess (ArrayAccessNode node)
     {
         Object[] array = getNonNullArray(node.array);
@@ -645,7 +633,6 @@ public final class Interpreter
             Object a = get(node.body);
             result[cpt++] = a;
         }
-//        System.out.println("res : " + Arrays.toString(result));
         return result;
 
     }

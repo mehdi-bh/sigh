@@ -119,7 +119,6 @@ public final class SemanticAnalysis
         walker.register(ParenthesizedNode.class,        PRE_VISIT,  analysis::parenthesized);
         walker.register(FieldAccessNode.class,          PRE_VISIT,  analysis::fieldAccess);
         walker.register(ArrayAccessNode.class,          PRE_VISIT,  analysis::arrayAccess);
-        walker.register(TupleAccessNode.class,          PRE_VISIT,  analysis::tupleAccess);
         walker.register(FunCallNode.class,              PRE_VISIT,  analysis::funCall);
         walker.register(UnaryExpressionNode.class,      PRE_VISIT,  analysis::unaryExpression);
         walker.register(BinaryExpressionNode.class,     PRE_VISIT,  analysis::binaryExpression);
@@ -390,28 +389,7 @@ public final class SemanticAnalysis
 
     // ---------------------------------------------------------------------------------------------
 
-    private void tupleAccess(TupleAccessNode node){
-        R.rule()
-            .using(node.index, "type")
-            .by(r -> {
-                Type type = r.get(0);
-                if (!(type instanceof IntType))
-                    r.error("Indexing an tuple using a non-Int-valued expression", node.index);
-            });
 
-        R.rule(node, "type")
-            .using(node.tuple, "type")
-            .by(r -> {
-                Type type = r.get(0);
-                System.out.println("type " + type);
-
-                if (type instanceof TupleType)
-                    r.set(0, TupleType.INSTANCE);
-//                    r.set(0, ((TupleType) type).componentType);
-                else
-                    r.error("Trying to index a non-array expression of type " + type, node);
-            });
-    }
 
     // ---------------------------------------------------------------------------------------------
 
